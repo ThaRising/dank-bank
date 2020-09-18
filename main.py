@@ -1,11 +1,13 @@
-from src.models import *
-from src.storage.datastores.sql.sql import get_db
-from src.storage.datastores.json.encoder import AlchemyEncoder
-import json
 from pathlib import Path
 
+from src.models import *
+from src.storage.json.datastore import JsonDatastore
 
 if __name__ == '__main__':
-    b = Benutzer(vorname="Ben", nachname="Koch")
-    with open(Path(__file__).parent / "hello.json", "a") as fout:
-        json.dump(b, fout, cls=AlchemyEncoder)
+    b = Benutzer(id=1, vorname="Ben", nachname="Koch")
+    j = JsonDatastore(Path(__file__).parent / "data")
+    j.create_database()
+    j.create(b)
+    print(j.read("benutzer"))
+    print(j.retrieve("benutzer", [1]))
+    j.destroy_database()

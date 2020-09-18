@@ -50,6 +50,12 @@ class Database:
         )
 
     # noinspection PyMethodMayBeStatic
+    def get_table_class(self, tablename: str):
+        for c in Base._decl_class_registry.values():  # noqa access to protected
+            if hasattr(c, '__table__') and c.__table__.fullname == tablename:
+                return c
+
+    # noinspection PyMethodMayBeStatic
     def _get_connection_conf(self, conn_args: dict) -> Tuple[str, dict]:
         """
         Automatically performs optimal parametrization of the SQLAlchemy engine.\n
@@ -128,4 +134,4 @@ def get_db():
     })  # TODO: Add live database to conn args
 
 
-__all__ = ["Base", "get_db"]
+__all__ = ["Base", "Database"]

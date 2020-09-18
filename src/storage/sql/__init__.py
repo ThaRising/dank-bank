@@ -1,5 +1,5 @@
 from .types import GUID
-from .sql import Base
+from .adapter import Base
 
 
 __all__ = ["GUID", "Base"]

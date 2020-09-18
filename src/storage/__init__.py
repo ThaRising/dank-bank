@@ -1,5 +1,5 @@
-class Storage:
-    pass
+from .json.datastore import JsonDatastore
+from . import json, sql
 
-
-__all__ = ["Storage"]
+__all__ = ["JsonDatastore",
+           "json", "sql"]

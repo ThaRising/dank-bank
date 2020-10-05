@@ -1,37 +1,12 @@
 from contextlib import contextmanager
 from functools import lru_cache
 from logging import getLogger, Logger
-from re import sub
 from typing import Iterator, Tuple, ClassVar
 
-from sqlalchemy import MetaData, create_engine
-from sqlalchemy.ext.declarative import declarative_base, declared_attr
+from sqlalchemy import create_engine
 from sqlalchemy.orm import Session as sqlaSession, sessionmaker
 from sqlalchemy.pool import StaticPool
-
-
-class _declared_Base:
-    @declared_attr
-    def __tablename__(self):
-        """
-        Automatically sets the name for created tables.\n
-        Converts CamelCase class names to snake_case table names.
-        """
-        return sub(r"(?<!^)(?=[A-Z])", "_", self.__name__).lower()
-
-
-Base = declarative_base(
-    cls=_declared_Base,
-    metadata=MetaData(
-        naming_convention={
-            "ix": "ix_%(column_0_label)s",  # index
-            "uq": "uq_%(table_name)s_%(column_0_name)s",  # unique constraint
-            "ck": "ck_%(table_name)s_%(constraint_name)s",  # check constraint
-            "fk": "fk_%(table_name)s_%(column_0_name)s_%(referred_table_name)s",  # foreign key
-            "pk": "pk_%(table_name)s",  # primary key
-        }
-    ),
-)
+from src.schema import Base
 
 
 class Database:
@@ -48,12 +23,6 @@ class Database:
             expire_on_commit=False,
             bind=self.engine,
         )
-
-    # noinspection PyMethodMayBeStatic
-    def get_table_class(self, tablename: str):
-        for c in Base._decl_class_registry.values():  # noqa access to protected
-            if hasattr(c, '__table__') and c.__table__.fullname == tablename:
-                return c
 
     # noinspection PyMethodMayBeStatic
     def _get_connection_conf(self, conn_args: dict) -> Tuple[str, dict]:

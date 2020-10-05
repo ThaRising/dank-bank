@@ -11,6 +11,7 @@ class Benutzer(Base):
 class TestTable(Base):
     name = sqla.Column(sqla.String, primary_key=True)
     sth = sqla.Column(sqla.Integer)
+    idk = sqla.Column(sqla.Integer, sqla.ForeignKey("benutzer.id"))
 
 
 __all__ = ["Benutzer"]

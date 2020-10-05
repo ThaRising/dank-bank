@@ -2,6 +2,8 @@ from pathlib import Path
 
 from src.models import *
 from src.storage.json.datastore import JsonDatastore
+from src.schema import Base
+from src.storage.sql.adapter import Database
 
 if __name__ == '__main__':
     b = Benutzer(id=1, vorname="Ben", nachname="Koch")
@@ -10,4 +12,4 @@ if __name__ == '__main__':
     j.create(b)
     print(j.read("benutzer"))
     print(j.retrieve("benutzer", [1]))
-    j.destroy_database()
+    #j.destroy_database()

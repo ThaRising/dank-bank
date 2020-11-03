@@ -1,13 +1,10 @@
 import datetime
-from typing import Optional
-
-import sqlalchemy as sqla
-from drizm_commons.sqla import Database, Base
-from sqlalchemy.orm import relationship
-
+import decimal
 from abc import ABC, abstractmethod
 from typing import Any, Union
-import decimal
+from typing import Optional
+
+from drizm_commons.sqla import Database
 
 
 class CrudInterface(ABC):
@@ -39,38 +36,6 @@ db = Database(
     dialect="sqlite",
     host="data.sqlite3"
 )
-
-
-class Kunde(Base):
-    name = sqla.Column(sqla.String)
-    adresse = sqla.Column(sqla.String)
-    geb_date = sqla.Column(sqla.Date)
-    konten = relationship("Konto")
-
-
-class Konto(Base):
-    pk = None
-    kontonummer = sqla.Column(sqla.String, primary_key=True)
-    kontostand = sqla.Column(sqla.Integer)
-    kontostand_dec = sqla.Column(sqla.Integer)
-    besitzer = sqla.Column(
-        sqla.Integer,
-        sqla.ForeignKey(
-            "kunde.pk"
-        )
-    )
-    waehrung = sqla.Column(
-        sqla.String,
-        sqla.ForeignKey(
-            "waehrung.code"
-        )
-    )
-
-
-class Waehrung(Base):
-    pk = None
-    code = sqla.Column(sqla.String, primary_key=True)
-    konten = relationship("Konto")
 
 
 class KundeController(CrudInterface):

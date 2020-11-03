@@ -4,7 +4,6 @@ from typing import Any, Union
 
 class CrudInterface(ABC):
     model: Any
-    db: Any
 
     @abstractmethod
     def create(self, *args, **kwargs):

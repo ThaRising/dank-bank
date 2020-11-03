@@ -1,6 +1,13 @@
 import json
-from sqlalchemy.ext.declarative import DeclarativeMeta
+import os
+import shutil
+from configparser import ConfigParser
+from pathlib import Path
 from typing import Any
+
+from drizm_commons.inspect import SQLAIntrospector
+from drizm_commons.sqla import Base
+from sqlalchemy.ext.declarative import DeclarativeMeta
 
 
 def is_dunder(name: str) -> bool:
@@ -27,3 +34,27 @@ class AlchemyEncoder(json.JSONEncoder):
 
         # If it is not an SQLAlchemy table use the default encoder
         return super(AlchemyEncoder, self).default(o)
+
+
+class JsonAdapter:
+    def __init__(self) -> None:
+        self.schema = ConfigParser()
+        self.path = Path(os.environ.get("PYTHONPATH")) / ".json_db"
+        if self.path.exists():
+            self.destroy()
+
+    def create(self) -> None:
+        for table in Base.metadata.sorted_tables:
+            t = SQLAIntrospector(table)
+            data = {
+                "file": f"{table.name}.json",
+                "pk": t.primary_keys(),
+                "uq": t.unique_keys(),
+                "fk": t.foreign_keys()
+            }
+            self.schema[table.name] = data
+        with open(Path(self.path) / "tbl_map.ini", "w") as fout:
+            self.schema.write(fout)
+
+    def destroy(self):
+        shutil.rmtree(str(self.path))

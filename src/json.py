@@ -3,10 +3,11 @@ import os
 import shutil
 from configparser import ConfigParser
 from pathlib import Path
-from typing import Any
+from typing import Any, Union
 
-from drizm_commons.inspect import SQLAIntrospector
 from drizm_commons.sqla import Base
+from re import sub
+from sqlalchemy import inspect
 from sqlalchemy.ext.declarative import DeclarativeMeta
 
 
@@ -36,25 +37,69 @@ class AlchemyEncoder(json.JSONEncoder):
         return super(AlchemyEncoder, self).default(o)
 
 
+class Inspector:
+    def __init__(self, o__):
+        self.schema = o__
+
+    def primary_keys(self) -> list:
+        return [c.key for c in inspect(self.schema).primary_key.columns]
+
+    def unique_keys(self) -> list:
+        return [
+            c.name for c in self.schema.c if any(
+                [c.primary_key, c.unique]
+            )
+        ]
+
+    def foreign_keys(self, columns_only: bool = False) -> Union[list, dict]:
+        foreign_keys = [c for c in self.schema.c if c.foreign_keys]
+        fk_names = [key.name for key in foreign_keys]
+        if columns_only:
+            return fk_names
+        fk_targets = [
+            list(key.foreign_keys)[0].target_fullname for key in foreign_keys
+        ]
+        return {
+            name: target for name, target in zip(fk_names, fk_targets)
+        }
+
+
 class JsonAdapter:
     def __init__(self) -> None:
         self.schema = ConfigParser()
-        self.path = Path(os.environ.get("PYTHONPATH")) / ".json_db"
+        root = os.environ.get("PYTHONPATH").split(os.pathsep)[0]
+        self.path = Path(root) / ".json_db"
         if self.path.exists():
             self.destroy()
+        self.path.mkdir()
+        self._tbl_cls_from_meta("konto")
 
     def create(self) -> None:
         for table in Base.metadata.sorted_tables:
-            t = SQLAIntrospector(table)
+            t = Inspector(table)
+            filename = f"{table.name}.json"
+            with open((self.path / filename), "w") as fout:
+                json.dump([], fout)
             data = {
-                "file": f"{table.name}.json",
+                "file": filename,
                 "pk": t.primary_keys(),
                 "uq": t.unique_keys(),
                 "fk": t.foreign_keys()
             }
             self.schema[table.name] = data
-        with open(Path(self.path) / "tbl_map.ini", "w") as fout:
+        table_map = Path(self.path) / "tbl_map.ini"
+        table_map.touch()
+        with open(table_map, "w") as fout:
             self.schema.write(fout)
 
     def destroy(self):
         shutil.rmtree(str(self.path))
+
+    def _tbl_cls_from_tablename(self, tablename: str):
+        tbl_name = lambda name: sub(r"(?<!^)(?=[A-Z])", "_", name).lower()
+        refs = {tbl_name(c): c for c in Base._decl_class_registry.keys()}
+        classname = refs.get(tablename)
+        return Base._decl_class_registry.get(classname)
+
+    def _tbl_cls_from_classname(self, classname: str):
+        return Base._decl_class_registry.get(classname)

@@ -1,64 +1,112 @@
-from functools import lru_cache
-from typing import Union, Type
+import json
+from pathlib import Path
+from typing import Union, List, Optional
 
-from drizm_commons.sqla import Database
+from drizm_commons.inspect import SQLAIntrospector
+from drizm_commons.sqla import Registry, Base, SqlaDeclarativeEncoder
 from sqlalchemy.ext.declarative import DeclarativeMeta
 
-from .json import JsonAdapter, AlchemyEncoder, Inspector
 from .abstract import CrudInterface
-import json
+
+
+def find_index_by_value_at_key(items: List[dict],
+                               key,
+                               value) -> Optional[int]:
+    for index, item in enumerate(items):
+        if item.get(key) == value:
+            return index
+    return None
 
 
 class JsonController(CrudInterface):
+    # noinspection PyMethodMayBeStatic
+    def _read_file_contents(self, filepath: Path):
+        with open(filepath, "r") as fin:
+            try:
+                content = json.load(fin)
+            except ValueError:
+                content = []
+            return content
+
     def create(self):
-        tablename = self.model_instance.__tablename__
-        filename = self.db.schema[tablename].file
-        with open((self.db.path / filename), "w") as fout:
-            existing = json.load(fout)
-            existing.append(self.model_instance)
-            json.dump(existing, fout, indent=4, cls=AlchemyEncoder)
+        table = SQLAIntrospector(self.model_instance)
+        filename = self.db.schema[table.tablename]["file"]
+        filepath = self.db.path / filename
+
+        with open(filepath, "w") as fout:
+            current_content = self._read_file_contents(filepath)
+            current_content.append(self.model_instance)
+            json.dump(
+                current_content,
+                fout,
+                indent=4,
+                cls=SqlaDeclarativeEncoder
+            )
 
     def update(self, data: dict):
+        # update the values based on passed data
         for k, v in data.items():
             setattr(self.model_instance, k, v)
-        tablename = self.model_instance.__tablename__
-        filename = self.db.schema[tablename].file
+
+        table = SQLAIntrospector(self.model_instance)
+        filename = self.db.schema[table.tablename]["file"]
+
         with open((self.db.path / filename), "w") as fout:
-            existing = json.load(fout)
-            pk_column = Inspector(self.model_instance).primary_keys()[0]
-            pks = [d.get(pk_column) for d in existing]
-            nr = pks.index(getattr(self.model_instance, pk_column))
-            existing[nr] = self.model_instance
-            json.dump(existing, fout, indent=4, cls=AlchemyEncoder)
+            current_content = json.load(fout)
+            pk_column = table.primary_keys()[0]
+            index = find_index_by_value_at_key(
+                current_content,
+                pk_column,
+                getattr(self.model_instance, pk_column)
+            )
+            current_content[index] = self.model_instance
+            json.dump(
+                current_content,
+                fout,
+                indent=4,
+                cls=SqlaDeclarativeEncoder
+            )
 
     def delete(self, **kwargs) -> None:
-        tablename = self.model_instance.__tablename__
-        filename = self.db.schema[tablename].file
+        table = SQLAIntrospector(self.model_instance)
+        filename = self.db.schema[table.tablename]["file"]
+
         with open((self.db.path / filename), "w") as fout:
-            existing = json.load(fout)
-            pk_column = Inspector(self.model_instance).primary_keys()[0]
-            pks = [d.get(pk_column) for d in existing]
-            nr = pks.index(getattr(self.model_instance, pk_column))
-            existing.pop(nr)
-            json.dump(existing, fout, indent=4, cls=AlchemyEncoder)
+            current_content = json.load(fout)
+            pk_column = table.primary_keys()[0]
+            index = find_index_by_value_at_key(
+                current_content,
+                pk_column,
+                getattr(self.model_instance, pk_column)
+            )
+            current_content.pop(index)
+            json.dump(
+                current_content,
+                fout,
+                indent=4,
+                cls=SqlaDeclarativeEncoder
+            )
 
     @staticmethod
     def read(model_class: DeclarativeMeta,
              storage_instance,
              **kwargs) -> Union[list, DeclarativeMeta]:
         tablename = model_class.__tablename__
-        filename = storage_instance.schema[tablename].file
-        cls = storage_instance._tbl_cls_from_tablename(tablename)
-        with open((storage_instance.path / filename), "w") as fout:
-            existing = json.load(fout)
+        filename = storage_instance.schema[tablename]["file"]
+        cls = Registry(Base).table_class_from_tablename(tablename)
+        with open((storage_instance.path / filename), "r") as fout:
+            current_content = json.load(fout)
             if kwargs:
-                requested_column, requested_id = list(kwargs.items())
-                rows = [d.get(requested_column) for d in existing]
-                nr = rows.index(requested_id)
-                item = existing[nr]
-                return cls(**item)
+                requested_column, requested_id = list(kwargs.items())[0]
+                index = find_index_by_value_at_key(
+                    current_content,
+                    requested_column,
+                    requested_id
+                )
+                item = current_content[index]
+                return cls.__class__(**item)
             else:
-                return [cls(**data) for data in existing]
+                return [cls(**data) for data in current_content]
 
 
 class SqlController(CrudInterface):
@@ -84,14 +132,3 @@ class SqlController(CrudInterface):
                 return sess.query(model_class).all()
         with storage_instance.Session() as sess:
             return sess.query(model_class).filter_by(**kwargs).all()
-
-
-@lru_cache
-def get_controller(storage_class) -> Type[CrudInterface]:
-    if isinstance(storage_class, Database):
-        return SqlController
-    elif isinstance(storage_class, JsonAdapter):
-        return JsonController
-
-
-__all__ = ["get_controller"]

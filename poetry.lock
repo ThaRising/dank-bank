@@ -36,7 +36,7 @@ description = "Python3 commons for the Drizm organization"
 name = "drizm-commons"
 optional = false
 python-versions = ">=3.8,<4.0"
-version = "0.2.0"
+version = "0.2.1"
 
 [package.dependencies]
 sqlalchemy = "1.3.20"
@@ -111,14 +111,6 @@ checkqa_mypy = ["mypy (0.780)"]
 testing = ["argcomplete", "hypothesis (>=3.56)", "mock", "nose", "requests", "xmlschema"]
 
 [[package]]
-category = "dev"
-description = "Python 2 and 3 compatibility utilities"
-name = "six"
-optional = false
-python-versions = ">=2.7, !=3.0.*, !=3.1.*, !=3.2.*"
-version = "1.15.0"
-
-[[package]]
 category = "main"
 description = "Extensions to the standard Python datetime module"
 name = "python-dateutil"
@@ -166,7 +158,7 @@ python-versions = ">=2.6, !=3.0.*, !=3.1.*, !=3.2.*"
 version = "0.10.2"
 
 [metadata]
-content-hash = "9001914e60832f1c623f1d1e6a60e35f5471f38a09123995f865b2457104e477"
+content-hash = "3ec8447fda5d7388c628ccd76d2794ae96e6f4b037b5e05b14e069451214e2ae"
 python-versions = "^3.8"
 
 [metadata.files]
@@ -183,8 +175,8 @@ colorama = [
     {file = "colorama-0.4.4.tar.gz", hash = "sha256:5941b2b48a20143d2267e95b1c2a7603ce057ee39fd88e7329b0c292aa16869b"},
 ]
 drizm-commons = [
-    {file = "drizm-commons-0.2.0.tar.gz", hash = "sha256:af1d7c978469d150665389243693d6e4e067a39f855d268548042f5dad9472d5"},
-    {file = "drizm_commons-0.2.0-py3-none-any.whl", hash = "sha256:dace4d62012c653f331615a6970a1e75c82cb0dc8709c5ae2ae4238105e095bd"},
+    {file = "drizm-commons-0.2.1.tar.gz", hash = "sha256:85a6e5f083c4ec752e27a27c6527d57a2be755cc770ffe2ba4d1068971c05acc"},
+    {file = "drizm_commons-0.2.1-py3-none-any.whl", hash = "sha256:51435bed559bd78db486d1fbf64d1dee3482172ef7f69f8320fb5907bf02e142"},
 ]
 iniconfig = [
     {file = "iniconfig-1.1.1-py2.py3-none-any.whl", hash = "sha256:011e24c64b7f47f6ebd835bb12a743f2fbe9a26d4cecaa7f53bc4f35ee9da8b3"},
@@ -209,10 +201,6 @@ pyparsing = [
 pytest = [
     {file = "pytest-6.1.2-py3-none-any.whl", hash = "sha256:4288fed0d9153d9646bfcdf0c0428197dba1ecb27a33bb6e031d002fa88653fe"},
     {file = "pytest-6.1.2.tar.gz", hash = "sha256:c0a7e94a8cdbc5422a51ccdad8e6f1024795939cc89159a0ae7f0b316ad3823e"},
-]
-six = [
-    {file = "six-1.15.0-py2.py3-none-any.whl", hash = "sha256:8b74bedcbbbaca38ff6d7491d76f2b06b3592611af620f8426e82dddb04a5ced"},
-    {file = "six-1.15.0.tar.gz", hash = "sha256:30639c035cdb23534cd4aa2dd52c3bf48f06e5f4a941509c8bafd8ce11080259"},
 ]
 python-dateutil = [
     {file = "python-dateutil-2.8.1.tar.gz", hash = "sha256:73ebfe9dbf22e832286dafa60473e4cd239f8592f699aa5adaf10050e6e1823c"},

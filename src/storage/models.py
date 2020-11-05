@@ -3,6 +3,7 @@ from drizm_commons.sqla import Base
 from dateutil.relativedelta import relativedelta
 from sqlalchemy.orm import relationship, validates
 import uuid
+import datetime
 
 
 class Kunde(Base):
@@ -17,15 +18,23 @@ class Kunde(Base):
     konten = relationship("Konto")
 
     @validates("name")
-    def validate_name(self, key, name):
+    def validate_name(self, _, name) -> str:
+        # make sure we have at least 2 word-blocks in our input
         assert len(name.split()) >= 2
+
+        # shortest possible name should be 4-chars + 1 whitespace
         assert len(name) >= 5
-        test = [l.isdigit() for l in name.replace(" ", "")]
-        assert not any(test)
+
+        # no numbers should be allowed in a name
+        letter_is_num = [
+            letter.isdigit() for letter in name.replace(" ", "")
+        ]
+        assert not any(letter_is_num)
+
         return name
 
     @validates("adresse")
-    def validate_adresse(self, key, adresse):
+    def validate_adresse(self, _, adresse) -> str:
         assert len(adresse.split()) >= 3
         assert len(adresse) >= 10
         assert len(adresse) <= 150

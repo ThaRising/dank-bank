@@ -1,14 +1,14 @@
 import datetime
 
-from src import get_storage, get_controller
-from src.models import Kunde
+from src.storage import get_storage, get_controller
+from src.storage.models import Kunde
 
 if __name__ == '__main__':
-    db = get_storage("json")
+    db = get_storage("sql")
     db.create()
     k = Kunde(
         name="Ben Koch",
-        adresse="iubuhbijgkijnkjn",
+        adresse="fgr rgtert ergert ergtert",
         geb_date=datetime.date.today()
     )
     c = get_controller(db)

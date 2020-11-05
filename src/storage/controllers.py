@@ -34,6 +34,7 @@ class JsonController(CrudInterface):
         filepath = self.db.path / filename
 
         with open(filepath, "w") as fout:
+            # read the file -> modify the content -> overwrite the file
             current_content = self._read_file_contents(filepath)
             current_content.append(self.model_instance)
             json.dump(
@@ -47,7 +48,6 @@ class JsonController(CrudInterface):
         # update the values based on passed data
         for k, v in data.items():
             setattr(self.model_instance, k, v)
-
         table = SQLAIntrospector(self.model_instance)
         filename = self.db.schema[table.tablename]["file"]
 

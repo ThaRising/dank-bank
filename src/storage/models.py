@@ -1,25 +1,24 @@
+import datetime
+import random
+import string
+import uuid
 from typing import Union
 
 import sqlalchemy as sqla
-from drizm_commons.sqla import Base
 from dateutil.relativedelta import relativedelta
+from drizm_commons.sqla import Base, Registry
 from sqlalchemy.orm import relationship, validates
-import uuid
-import datetime
+
+from .controllers import find_index_by_value_at_key
 
 
 class Kunde(Base):
-    pk = sqla.Column(
-        sqla.String,
-        default=uuid.uuid4().hex,
-        primary_key=True
-    )
+    pk = sqla.Column(sqla.String, primary_key=True)
     name = sqla.Column(sqla.String)
     strasse = sqla.Column(sqla.String(100))
     stadt = sqla.Column(sqla.String)
     plz = sqla.Column(sqla.String)
     geb_date = sqla.Column(sqla.Date)
-    konten = relationship("Konto")
 
     @validates("name")
     def validate_name(self, _, name) -> str:
@@ -44,17 +43,16 @@ class Kunde(Base):
         street_blocks = strasse.split()
         assert len(street_blocks) >= 2
 
-        # checks shortest possible street name length 'aweg 1'
+        # shortest possible street name would be sth like 'aweg 1'
         assert len(strasse) >= 6
 
         return strasse
-
 
     @validates("stadt")
     def validate_stadt(self, _, stadt: str) -> str:
         assert len(stadt) >= 2
 
-        return stadt#
+        return stadt
 
     @validates("plz")
     def validates_plz(self, _, plz: str) -> str:
@@ -78,11 +76,15 @@ class Kunde(Base):
         # get current date for comparison to validate age
         current_date = datetime.date.today()
 
-        # subtract 18 years from today to check age
+        # subtract 18 years from today to validate min required age
         min_date = current_date - relativedelta(years=18)
         assert geb_date < min_date
 
         return geb_date
+    
+    def __init__(self, **kwargs) -> None:
+        self.pk = uuid.uuid4().hex
+        super(Kunde, self).__init__(**kwargs)
 
 
 class Konto(Base):
@@ -101,6 +103,16 @@ class Konto(Base):
             "waehrung.code"
         )
     )
+
+    def __init__(self, **kwargs) -> None:
+        # generate 12-digit long mix,
+        # of random uppercase letters and digits
+        self.kontonummer = "".join(
+            random.choices(
+                string.ascii_uppercase, string.digits, k=12
+            )
+        )
+        super(Konto, self).__init__(**kwargs)
 
 
 class Waehrung(Base):

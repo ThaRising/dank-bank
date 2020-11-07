@@ -15,7 +15,6 @@ def get_storage(storage_type: str):
         db = Database(
             dialect="sqlite",
             host="data.sqlite3",
-            extra_engine_args={"echo": True}
         )
         db.engine.echo = True
         return db

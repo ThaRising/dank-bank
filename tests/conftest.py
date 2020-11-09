@@ -1,5 +1,5 @@
 import pytest
-from src import get_storage, get_controller
+from src.storage import get_storage, get_controller
 
 
 @pytest.fixture(scope="session")

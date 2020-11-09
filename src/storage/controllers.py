@@ -1,6 +1,7 @@
 import json
 from pathlib import Path
 from typing import Union, List, Optional
+from inspect import isclass
 
 from drizm_commons.inspect import SQLAIntrospector
 from drizm_commons.sqla import Registry, Base, SqlaDeclarativeEncoder
@@ -12,6 +13,11 @@ from .abstract import CrudInterface
 def find_index_by_value_at_key(items: List[dict],
                                key,
                                value) -> Optional[int]:
+    """
+    Inside of a list of dictionaries,
+    find the index of the first dictionary,
+    that has a matching value for the given key
+    """
     for index, item in enumerate(items):
         if item.get(key) == value:
             return index
@@ -21,6 +27,8 @@ def find_index_by_value_at_key(items: List[dict],
 class JsonController(CrudInterface):
     # noinspection PyMethodMayBeStatic
     def _read_file_contents(self, filepath: Path):
+        # the default JSON decoder does not accept a file,
+        # that has just an empty list in it so we ignore the error
         with open(filepath, "r") as fin:
             try:
                 content = json.load(fin)
@@ -34,6 +42,7 @@ class JsonController(CrudInterface):
         filepath = self.db.path / filename
 
         with open(filepath, "w") as fout:
+            # read the file -> add some content -> overwrite the file
             current_content = self._read_file_contents(filepath)
             current_content.append(self.model_instance)
             json.dump(
@@ -44,7 +53,7 @@ class JsonController(CrudInterface):
             )
 
     def update(self, data: dict):
-        # update the values based on passed data
+        # update the values on the instance
         for k, v in data.items():
             setattr(self.model_instance, k, v)
 
@@ -52,6 +61,7 @@ class JsonController(CrudInterface):
         filename = self.db.schema[table.tablename]["file"]
 
         with open((self.db.path / filename), "w") as fout:
+            # read the file -> modify the content -> overwrite the file
             current_content = json.load(fout)
             pk_column = table.primary_keys()[0]
             index = find_index_by_value_at_key(
@@ -72,6 +82,7 @@ class JsonController(CrudInterface):
         filename = self.db.schema[table.tablename]["file"]
 
         with open((self.db.path / filename), "w") as fout:
+            # read the file -> delete some content -> overwrite the file
             current_content = json.load(fout)
             pk_column = table.primary_keys()[0]
             index = find_index_by_value_at_key(
@@ -91,9 +102,18 @@ class JsonController(CrudInterface):
     def read(model_class: DeclarativeMeta,
              storage_instance,
              **kwargs) -> Union[list, DeclarativeMeta]:
-        tablename = model_class.__tablename__
+        table_inspector = SQLAIntrospector(model_class)
+        tablename = table_inspector.tablename
         filename = storage_instance.schema[tablename]["file"]
-        cls = Registry(Base).table_class_from_tablename(tablename)
+
+        if isclass(model_class):
+            cls = model_class
+        # if the user only passes a model instance,
+        # we need to reverse its baseclass to build a new instance from
+        else:
+            cls = Registry(Base)[table_inspector.classname]
+            cls = cls.__class__
+
         with open((storage_instance.path / filename), "r") as fout:
             current_content = json.load(fout)
             if kwargs:
@@ -104,7 +124,7 @@ class JsonController(CrudInterface):
                     requested_id
                 )
                 item = current_content[index]
-                return cls.__class__(**item)
+                return cls(**item)
             else:
                 return [cls(**data) for data in current_content]
 
@@ -127,8 +147,12 @@ class SqlController(CrudInterface):
     def read(model_class: DeclarativeMeta,
              storage_instance,
              **kwargs) -> Union[list, DeclarativeMeta]:
+        # if the user has not provided any kwargs like 'pk=3'
+        # then we can assume they want all rows of the given table
         if not kwargs:
             with storage_instance.Session() as sess:
                 return sess.query(model_class).all()
+
+        # if they did provide kwargs we can query for a specific instance
         with storage_instance.Session() as sess:
             return sess.query(model_class).filter_by(**kwargs).all()

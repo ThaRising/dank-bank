@@ -15,7 +15,7 @@ class JsonAdapter:
 
     def create(self) -> None:
         """ Create the JSON 'database' or schema """
-        # goes through all tables
+        # goes through all declared tables
         for t in Base.metadata.sorted_tables:
             # inspect the table
             table = SQLAIntrospector(t)

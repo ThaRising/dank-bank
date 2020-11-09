@@ -36,7 +36,7 @@ description = "Python3 commons for the Drizm organization"
 name = "drizm-commons"
 optional = false
 python-versions = ">=3.8,<4.0"
-version = "0.3.0"
+version = "0.3.3"
 
 [package.dependencies]
 [package.dependencies.sqlalchemy]
@@ -180,8 +180,8 @@ colorama = [
     {file = "colorama-0.4.4.tar.gz", hash = "sha256:5941b2b48a20143d2267e95b1c2a7603ce057ee39fd88e7329b0c292aa16869b"},
 ]
 drizm-commons = [
-    {file = "drizm-commons-0.3.0.tar.gz", hash = "sha256:2ce9678bf508d0ac53ed1f0adcca43fd612c5993a115e575c39bc59a46d8b77d"},
-    {file = "drizm_commons-0.3.0-py3-none-any.whl", hash = "sha256:6d623c86d86e3252bac5027f8c479d165d4c87489845e2fc7f9e52363c8d3f83"},
+    {file = "drizm-commons-0.3.3.tar.gz", hash = "sha256:5f2a8a5c553e7b445a7a3f64b7c291e08e91cd010355dc58cb2c11cb300238f3"},
+    {file = "drizm_commons-0.3.3-py3-none-any.whl", hash = "sha256:7479927a8140a786f146c9c6531387d0404ac7a46a01b5d9fc3726ac62a8ef4c"},
 ]
 iniconfig = [
     {file = "iniconfig-1.1.1-py2.py3-none-any.whl", hash = "sha256:011e24c64b7f47f6ebd835bb12a743f2fbe9a26d4cecaa7f53bc4f35ee9da8b3"},

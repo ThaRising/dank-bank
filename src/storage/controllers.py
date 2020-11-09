@@ -100,11 +100,14 @@ class JsonController(CrudInterface):
 
     @staticmethod
     def read(model_class: DeclarativeMeta,
-             storage_instance,
-             **kwargs) -> Union[list, DeclarativeMeta]:
+             *args, **kwargs) -> Union[list, DeclarativeMeta]:
         table_inspector = SQLAIntrospector(model_class)
         tablename = table_inspector.tablename
-        filename = storage_instance.schema[tablename]["file"]
+
+        from . import get_storage
+        storage = get_storage()
+
+        filename = storage.schema[tablename]["file"]
 
         if isclass(model_class):
             cls = model_class
@@ -114,10 +117,22 @@ class JsonController(CrudInterface):
             cls = Registry(Base)[table_inspector.classname]
             cls = cls.__class__
 
-        with open((storage_instance.path / filename), "r") as fout:
+        with open((storage.path / filename), "r") as fout:
             current_content = json.load(fout)
+            if not current_content:
+                return []
+            if not kwargs and not args:
+                return [cls(**data) for data in current_content]
             if kwargs:
-                requested_column, requested_id = list(kwargs.items())[0]
+                requested_column, requested_value = list(kwargs.items())[0]
+                indexes = [
+                    current_content.index(i) for i in current_content
+                    if i.get(requested_column) == requested_value
+                ]
+                return [cls(**current_content[index]) for index in indexes]
+            elif args:
+                requested_column = SQLAIntrospector(model_class).primary_keys()[0]
+                requested_id = args[0]
                 index = find_index_by_value_at_key(
                     current_content,
                     requested_column,
@@ -125,8 +140,6 @@ class JsonController(CrudInterface):
                 )
                 item = current_content[index]
                 return cls(**item)
-            else:
-                return [cls(**data) for data in current_content]
 
 
 class SqlController(CrudInterface):
@@ -145,14 +158,21 @@ class SqlController(CrudInterface):
 
     @staticmethod
     def read(model_class: DeclarativeMeta,
-             storage_instance,
-             **kwargs) -> Union[list, DeclarativeMeta]:
+             *args, **kwargs) -> Union[list, DeclarativeMeta]:
+        from . import get_storage
+        storage = get_storage()
+
         # if the user has not provided any kwargs like 'pk=3'
         # then we can assume they want all rows of the given table
-        if not kwargs:
-            with storage_instance.Session() as sess:
+        if not kwargs and not args:
+            with storage.Session() as sess:
                 return sess.query(model_class).all()
 
-        # if they did provide kwargs we can query for a specific instance
-        with storage_instance.Session() as sess:
-            return sess.query(model_class).filter_by(**kwargs).all()
+        # if they did provide kwargs we can filter
+        if kwargs:
+            with storage.Session() as sess:
+                return sess.query(model_class).filter_by(**kwargs).all()
+
+        elif args:
+            with storage.Session() as sess:
+                return sess.query(model_class).get(args[0])

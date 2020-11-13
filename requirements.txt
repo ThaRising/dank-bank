@@ -1,15 +1,15 @@
 atomicwrites==1.4.0; sys_platform == "win32" \
     --hash=sha256:6d1784dea7c0c8d4a5172b6c620f40b6e4cbfdf96d783691f2e1302a7b88e197 \
     --hash=sha256:ae70396ad1a434f9c7046fd2dd196fc04b12f9e91ffb859164193be8b6168a7a
-attrs==20.2.0 \
-    --hash=sha256:fce7fc47dfc976152e82d53ff92fa0407700c21acd20886a13777a0d20e655dc \
-    --hash=sha256:26b54ddbbb9ee1d34d5d3668dd37d6cf74990ab23c828c2888dccdceee395594
+attrs==20.3.0 \
+    --hash=sha256:31b2eced602aa8423c2aea9c76a724617ed67cf9513173fd3a4f03e3a929c7e6 \
+    --hash=sha256:832aa3cde19744e49938b91fea06d69ecb9e649c93ba974535d08ad92164f700
 colorama==0.4.4; sys_platform == "win32" \
     --hash=sha256:9f47eda37229f68eee03b24b9748937c7dc3868f906e8ba69fbcbdd3bc5dc3e2 \
     --hash=sha256:5941b2b48a20143d2267e95b1c2a7603ce057ee39fd88e7329b0c292aa16869b
-drizm-commons==0.2.1 \
-    --hash=sha256:85a6e5f083c4ec752e27a27c6527d57a2be755cc770ffe2ba4d1068971c05acc \
-    --hash=sha256:51435bed559bd78db486d1fbf64d1dee3482172ef7f69f8320fb5907bf02e142
+drizm-commons==0.3.3 \
+    --hash=sha256:5f2a8a5c553e7b445a7a3f64b7c291e08e91cd010355dc58cb2c11cb300238f3 \
+    --hash=sha256:7479927a8140a786f146c9c6531387d0404ac7a46a01b5d9fc3726ac62a8ef4c
 iniconfig==1.1.1 \
     --hash=sha256:011e24c64b7f47f6ebd835bb12a743f2fbe9a26d4cecaa7f53bc4f35ee9da8b3 \
     --hash=sha256:bc3af051d7d14b2ee5ef9969666def0cd1a000e121eaea580d4a313df4b37f32

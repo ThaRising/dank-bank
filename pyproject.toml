@@ -7,9 +7,11 @@ authors = ["Your Name <you@example.com>"]
 [tool.poetry.dependencies]
 python = "^3.8"
 sqlalchemy = "^1.3.19"
-drizm-commons = "^0.1.0"
+python-dateutil = "^2.8.1"
+drizm-commons = {extras = ["sqla"], version = "^0.3.0"}
 
 [tool.poetry.dev-dependencies]
+pytest = "^6.1.2"
 
 [build-system]
 requires = ["poetry>=0.12"]

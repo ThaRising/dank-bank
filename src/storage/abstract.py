@@ -6,11 +6,11 @@ from sqlalchemy.ext.declarative import DeclarativeMeta
 
 
 class CrudInterface(ABC):
-    def __init__(self,
-                 model_instance: Base,
-                 storage_instance) -> None:
+    def __init__(self, model_instance: Base) -> None:
         self.model_instance = model_instance
-        self.db = storage_instance
+
+        from . import get_storage
+        self.db = get_storage()
 
     @abstractmethod
     def create(self):
@@ -26,6 +26,5 @@ class CrudInterface(ABC):
 
     @staticmethod
     def read(model_class: DeclarativeMeta,
-             storage_instance,
-             **kwargs) -> Union[list, DeclarativeMeta]:
+             *args, **kwargs) -> Union[list, DeclarativeMeta]:
         pass

@@ -6,10 +6,8 @@ from typing import Union
 
 import sqlalchemy as sqla
 from dateutil.relativedelta import relativedelta
-from drizm_commons.sqla import Base, Registry
-from sqlalchemy.orm import relationship, validates
-
-from .controllers import find_index_by_value_at_key
+from drizm_commons.sqla import Base
+from sqlalchemy.orm import validates
 
 
 class Kunde(Base):
@@ -86,6 +84,12 @@ class Kunde(Base):
         self.pk = uuid.uuid4().hex
         super(Kunde, self).__init__(**kwargs)
 
+    @property
+    def konten(self):
+        from . import get_storage, get_controller
+        Controller = get_controller(get_storage())
+        return Controller.read(Konto, besitzer=self.pk)
+
 
 class Konto(Base):
     pk = None
@@ -109,16 +113,19 @@ class Konto(Base):
         # of random uppercase letters and digits
         self.kontonummer = "".join(
             random.choices(
-                string.ascii_uppercase, string.digits, k=12
+                (string.ascii_uppercase, string.digits), k=12
             )
         )
+        if kwargs.get("kontostand"):
+            self.kontostand = kwargs.pop("kontostand")
+        else:
+            self.kontostand = 0
         super(Konto, self).__init__(**kwargs)
 
 
 class Waehrung(Base):
     pk = None
-    code = sqla.Column(sqla.String, primary_key=True)
-    konten = relationship("Konto")
+    code = sqla.Column(sqla.String(3), primary_key=True)
 
 
 __all__ = ["Kunde", "Konto", "Waehrung"]

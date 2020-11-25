@@ -10,12 +10,31 @@ class TUI:
 
         while True:
             self.user = self.login_prompt()
-            while not (option := self.choose_option()):
-                pass
-            if not self.keep_running():
-                sys.exit(0)
-            if not self.change_user_or_stay_logged_in():
-                sys.exit(0)
+
+            x = True
+            while x:
+
+                while not (option := self.choose_option()):
+                    pass
+                self.option = option
+
+                if option == "Einzahlung":
+                    self.option_deposit()
+                elif option == "Auszahlung":
+                    self.option_withdraw()
+                elif option == "Überweisung":
+                    self.option_transfer()
+                elif option == "Kontostand":
+                    self.option_balance()
+                else:
+                    print("öhhm etwas ist schief gelaufen")
+                    sys.exit(69)
+
+                if not self.keep_running():
+                    sys.exit(0)
+                if self.change_user_or_stay_logged_in():
+                    x = False
+
 
     def print_intro(self) -> Optional[int]:
         print('Wähle aus:')
@@ -36,9 +55,10 @@ class TUI:
 
     def login_prompt(self) -> Optional[int]:
         # idgaf about this method, get rekt
-        str(input('Username: '))
-        int(input('Account ID: '))
-        str(input('Passwort: '))
+        username = str(input('Username: '))
+        account_id = int(input('Account ID: '))
+        password = str(input('Passwort: '))
+        print(username, account_id, password)
         conUser = True
         return conUser
 
@@ -61,12 +81,28 @@ class TUI:
             return False
         except IndexError:
             print("Ist keine gültige Option")
-            return False
+            return
+
+    def option_deposit(self):
+        print('Einzahlung wurde gewählt')
+        #TODO Einzahlung
+
+    def option_withdraw(self):
+        print('Auszahlung wurde gewählt')
+        #TODO Auszahlung
+
+    def option_transfer(self):
+        print('Überweisung wurde gewählt')
+        #TODO Überweisung
+
+    def option_balance(self):
+        print('Kontostand wurde gewählt')
+        #TODO Kontostand
 
     def change_user_or_stay_logged_in(self) -> Optional[int]:
         try:
             option = int(
-                input('Weiter Aktionen mit diesen Account tätigen?\n1 = Nein | 2 = Ja\n')
+                input('Weiter Aktionen mit diesen Account tätigen?\n1 = Ja | 2 = Nein\n')
             )
             return option - 1
         except TypeError:
@@ -76,7 +112,7 @@ class TUI:
     def keep_running(self) -> Optional[int]:
         try:
             option = int(
-                input('Programm beenden?\n1 = Nein | 2 = Ja\n')
+                input('Programm beenden?\n1 = Ja | 2 = Nein\n')
             )
             return option - 1
         except TypeError:

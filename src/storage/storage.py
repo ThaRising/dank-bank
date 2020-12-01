@@ -21,9 +21,11 @@ class Storage:
             "json": lambda: JsonAdapter()
         }
 
+        from .managers.sql import SqlManager
+        from .managers.json import JsonManager
         MANAGER_TYPES = {
-            "sql": None,
-            "json": None
+            "sql": SqlManager,
+            "json": JsonManager
         }
 
         # if no storage_type has explicitly been passed, attempt to return

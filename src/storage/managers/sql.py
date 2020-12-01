@@ -22,15 +22,18 @@ class SqlManager(BaseManagerInterface):
     def read(self, *args, **kwargs) -> Union[list, DeclarativeMeta]:
         # if the user has not provided any kwargs like 'pk=3'
         # then we can assume they want all rows of the given table
+        klass = self.klass
+        if not isinstance(self.klass, DeclarativeMeta):
+            klass = self.klass.__class__
         if not kwargs and not args:
             with self.db.Session() as sess:
-                return sess.query(self.klass.__class__).all()
+                return sess.query(klass).all()
 
         # if they did provide kwargs we can filter
         if kwargs:
             with self.db.Session() as sess:
-                return sess.query(self.klass).filter_by(**kwargs).all()
+                return sess.query(klass).filter_by(**kwargs).all()
 
         elif args:
             with self.db.Session() as sess:
-                return sess.query(self.klass).get(args[0])
+                return sess.query(klass).get(args[0])

@@ -7,7 +7,7 @@ from drizm_commons.inspect import SQLAIntrospector
 from drizm_commons.sqla import Registry, Base, SqlaDeclarativeEncoder
 from sqlalchemy.ext.declarative import DeclarativeMeta
 
-from .abstract import CrudInterface
+from .base import BaseManagerInterface
 
 
 def find_index_by_value_at_key(items: List[dict],
@@ -24,7 +24,7 @@ def find_index_by_value_at_key(items: List[dict],
     return None
 
 
-class JsonController(CrudInterface):
+class JsonManager(BaseManagerInterface):
     # noinspection PyMethodMayBeStatic
     def _read_file_contents(self, filepath: Path):
         # the default JSON decoder does not accept a file,
@@ -36,15 +36,15 @@ class JsonController(CrudInterface):
                 content = []
             return content
 
-    def create(self):
-        table = SQLAIntrospector(self.model_instance)
+    def save(self):
+        table = SQLAIntrospector(self.klass)
         filename = self.db.schema[table.tablename]["file"]
         filepath = self.db.path / filename
 
         with open(filepath, "w") as fout:
             # read the file -> add some content -> overwrite the file
             current_content = self._read_file_contents(filepath)
-            current_content.append(self.model_instance)
+            current_content.append(self.klass)
             json.dump(
                 current_content,
                 fout,
@@ -55,9 +55,9 @@ class JsonController(CrudInterface):
     def update(self, data: dict):
         # update the values on the instance
         for k, v in data.items():
-            setattr(self.model_instance, k, v)
+            setattr(self.klass, k, v)
 
-        table = SQLAIntrospector(self.model_instance)
+        table = SQLAIntrospector(self.klass)
         filename = self.db.schema[table.tablename]["file"]
 
         with open((self.db.path / filename), "w") as fout:
@@ -67,9 +67,9 @@ class JsonController(CrudInterface):
             index = find_index_by_value_at_key(
                 current_content,
                 pk_column,
-                getattr(self.model_instance, pk_column)
+                getattr(self.klass, pk_column)
             )
-            current_content[index] = self.model_instance
+            current_content[index] = self.klass
             json.dump(
                 current_content,
                 fout,
@@ -78,7 +78,7 @@ class JsonController(CrudInterface):
             )
 
     def delete(self, **kwargs) -> None:
-        table = SQLAIntrospector(self.model_instance)
+        table = SQLAIntrospector(self.klass)
         filename = self.db.schema[table.tablename]["file"]
 
         with open((self.db.path / filename), "w") as fout:
@@ -88,7 +88,7 @@ class JsonController(CrudInterface):
             index = find_index_by_value_at_key(
                 current_content,
                 pk_column,
-                getattr(self.model_instance, pk_column)
+                getattr(self.klass, pk_column)
             )
             current_content.pop(index)
             json.dump(
@@ -98,24 +98,16 @@ class JsonController(CrudInterface):
                 cls=SqlaDeclarativeEncoder
             )
 
-    @staticmethod
-    def read(model_class: DeclarativeMeta,
-             *args, **kwargs) -> Union[list, DeclarativeMeta]:
-        table_inspector = SQLAIntrospector(model_class)
+    def read(self, *args, **kwargs) -> Union[list, DeclarativeMeta]:
+        table_inspector = SQLAIntrospector(self.klass)
         tablename = table_inspector.tablename
 
-        from . import get_storage
-        storage = get_storage()
+        filename = self.db.schema[tablename]["file"]
 
-        filename = storage.schema[tablename]["file"]
-
-        if isclass(model_class):
-            cls = model_class
         # if the user only passes a model instance,
         # we need to reverse its baseclass to build a new instance from
-        else:
-            cls = Registry(Base)[table_inspector.classname]
-            cls = cls.__class__
+        cls = Registry(Base)[table_inspector.classname]
+        cls = cls.__class__
 
         with open((storage.path / filename), "r") as fout:
             current_content = json.load(fout)
@@ -140,39 +132,3 @@ class JsonController(CrudInterface):
                 )
                 item = current_content[index]
                 return cls(**item)
-
-
-class SqlController(CrudInterface):
-    def create(self) -> None:
-        with self.db.Session() as sess:
-            sess.add(self.model_instance)
-
-    def update(self, data: dict) -> None:
-        with self.db.Session():
-            for k, v in data.items():
-                setattr(self.model_instance, k, v)
-
-    def delete(self, **kwargs) -> None:
-        with self.db.Session() as sess:
-            sess.delete(self.model_instance)
-
-    @staticmethod
-    def read(model_class: DeclarativeMeta,
-             *args, **kwargs) -> Union[list, DeclarativeMeta]:
-        from . import get_storage
-        storage = get_storage()
-
-        # if the user has not provided any kwargs like 'pk=3'
-        # then we can assume they want all rows of the given table
-        if not kwargs and not args:
-            with storage.Session() as sess:
-                return sess.query(model_class).all()
-
-        # if they did provide kwargs we can filter
-        if kwargs:
-            with storage.Session() as sess:
-                return sess.query(model_class).filter_by(**kwargs).all()
-
-        elif args:
-            with storage.Session() as sess:
-                return sess.query(model_class).get(args[0])

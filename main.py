@@ -22,3 +22,13 @@ if __name__ == '__main__':
     konto_controller = Controller(konto)
     konto_controller.create()
     print(kunde.konten)
+
+    Storage("json")
+    kunde = Kunde(
+        name="Ben Koch",
+        plz="16386",
+        stadt="Berlin",
+        strasse="fgr rgtert ergert ergtert",
+        geb_date=datetime.date(2000, 1, 1)
+    )
+    kunde.objects.save()

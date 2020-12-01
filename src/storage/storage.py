@@ -9,7 +9,9 @@ class Storage:
 
     def __new__(cls,
                 storage_type: Optional[str] = None) -> "Storage":
-        # We import inside of the methods scope to avoid circular dependencies
+        # We do all imports inside of the methods scope,
+        # to avoid circular dependencies since we import this
+        # module from across the board in the package
         from .json import JsonAdapter
         from drizm_commons.sqla import Database
 
@@ -34,8 +36,10 @@ class Storage:
             try:
                 return cls.__interned[None]
             except KeyError:
-                raise NameError(
-                    f"Class Storage ({cls.__name__}) still awaiting initialization."
+                raise RuntimeError(
+                    f"Class Storage ({cls.__name__}) still awaiting initialization. "
+                    "You may have called storage related code, or created a model instance "
+                    "before initializing this class."
                 )
 
         # If we do have a provided type, check if it is valid
@@ -43,11 +47,16 @@ class Storage:
         try:
             db = STORAGE_TYPES[storage_type]
             db = db()
+
+            # managers get initialized dynamically,
+            # with either a class object or class instance
+            # by the hybrid_property on the respective Model classes
             manager = MANAGER_TYPES[storage_type]
+
         except KeyError:
             raise ValueError(
                 f"Value '{storage_type}' is not a valid identifier for "
-                f"a storage type, must be one of {[t for t in STORAGE_TYPES.keys()]}"
+                f"a storage type, must be one of {STORAGE_TYPES.keys()}"
             )
 
         # if this is the first initialization, we set this storage as default

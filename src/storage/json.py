@@ -8,13 +8,24 @@ from drizm_commons.utils import get_application_root, Path
 class JsonAdapter:
     def __init__(self) -> None:
         self.schema = ConfigParser()
+
         self.path = Path(get_application_root()) / ".json_db"
-        if self.path.exists():
-            self.path.rmdir()
-        self.path.mkdir()
+        self.table_map = Path(self.path) / "tbl_map.ini"
+
+    def _load(self):
+        with open(self.table_map, "r") as fin:
+            self.schema.read_file(fin)
 
     def create(self) -> None:
         """ Create the JSON 'database' or schema """
+        # If a table mapping already exists,
+        # load it instead of deleting
+        # if not create the folder for our 'json db'
+        if self.path.exists():
+            self._load()
+            return
+        self.path.mkdir()
+
         # goes through all declared tables
         for t in Base.metadata.sorted_tables:
             # inspect the table
@@ -31,11 +42,10 @@ class JsonAdapter:
             }
             self.schema[table.tablename] = data
 
-        # creates the file 'tbl_map.ini '
+        # creates the file 'tbl_map.ini'
         # and dumps the content of self.schema into it
-        table_map = Path(self.path) / "tbl_map.ini"
-        table_map.touch()
-        with open(table_map, "w") as fout:
+        self.table_map.touch()
+        with open(self.table_map, "w") as fout:
             self.schema.write(fout)
 
     def destroy(self):

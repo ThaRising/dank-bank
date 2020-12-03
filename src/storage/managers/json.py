@@ -36,6 +36,16 @@ class JsonManager(BaseManagerInterface):
                 content = []
             return content
 
+    # noinspection PyMethodMayBeStatic
+    def _save(self, current_content, fout) -> None:
+        """ Writes the provided content into the provided file-object """
+        json.dump(
+            current_content,
+            fout,
+            indent=4,
+            cls=SqlaDeclarativeEncoder
+        )
+
     def save(self):
         table = SQLAIntrospector(self.klass)
         filename = self.db.schema[table.tablename]["file"]
@@ -45,12 +55,7 @@ class JsonManager(BaseManagerInterface):
             # read the file -> add some content -> overwrite the file
             current_content = self._read_file_contents(filepath)
             current_content.append(self.klass)
-            json.dump(
-                current_content,
-                fout,
-                indent=4,
-                cls=SqlaDeclarativeEncoder
-            )
+            self._save(current_content, fout)
 
     def update(self, data: dict):
         # update the values on the instance

@@ -1,11 +1,10 @@
 from abc import ABC, abstractmethod
 from inspect import isclass
-from typing import Optional, Union, Type, TypeVar, List
+from typing import Optional, Union, Type, TypeVar, List, Literal
 
 from drizm_commons.utils import is_dunder
 from sqlalchemy.ext.declarative import DeclarativeMeta
-
-DeclarativeSubtype = TypeVar("DeclarativeSubtype", bound=DeclarativeMeta)
+from src.storage.root_types import StorageType
 
 
 class BaseManagerInterface(ABC):
@@ -15,7 +14,7 @@ class BaseManagerInterface(ABC):
 
         # This value gives subclasses a way to execute
         # different code based on the type of storage we are using
-        self.db_type = store_type  # type: str
+        self.db_type = store_type
 
     def _is_static(self) -> bool:
         """ Check whether this manager is serving an instance or a class """
@@ -28,7 +27,7 @@ class BaseManagerInterface(ABC):
         pass
 
     @abstractmethod
-    def update(self, data: dict) -> DeclarativeSubtype:
+    def update(self, data):
         pass
 
     @abstractmethod
@@ -36,7 +35,7 @@ class BaseManagerInterface(ABC):
         pass
 
     @abstractmethod
-    def read(self, *args, **kwargs) -> Union[list, DeclarativeSubtype]:
+    def read(self, *args, **kwargs):
         """
         Will take either one positional argument or n-keyword arguments.
 
@@ -51,17 +50,14 @@ class BaseManagerInterface(ABC):
         """
         pass
 
-    def all(self) -> List[DeclarativeSubtype]:
+    def all(self):
         """
         Syntactic / Semantic sugar for querying all entities of a Model.
         """
         return self.read()
 
 
-ManagerT = TypeVar("ManagerT", bound=BaseManagerInterface)
-
-
-class AbstractManager(ManagerT):
+class AbstractManager:
     """
     Class that serves as a factory for Manager classes.
 
@@ -75,9 +71,11 @@ class AbstractManager(ManagerT):
     This means the product will be the base of the automatically
     selected Manager with the addition of the user specified Methods.
     """
-    klass: DeclarativeSubtype
 
-    def __new__(cls, klass, storage_type: Optional[str] = None):
+    def __new__(cls,
+                klass,
+                storage_type: Optional[StorageType] = None
+                ) -> BaseManagerInterface:
         from ..storage import Storage
         from drizm_commons.sqla import Database
 
@@ -105,19 +103,7 @@ class AbstractManager(ManagerT):
             }
         )
 
-        return Manager(klass, db, storage_name)  # type: Type[BaseManagerInterface]
-
-    def _is_static(self) -> bool: ...
-
-    def save(self) -> None: ...
-
-    def update(self, data: dict) -> Type[DeclarativeSubtype]: ...
-
-    def delete(self, **kwargs) -> None: ...
-
-    def read(self, *args, **kwargs) -> Union[list, DeclarativeSubtype]: ...
-
-    def all(self) -> List[DeclarativeSubtype]: ...
+        return Manager(klass, db, storage_name)
 
 
 class BaseManager(AbstractManager):

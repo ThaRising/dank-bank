@@ -4,9 +4,6 @@ from typing import Optional, Type, Literal
 class Storage:
     __interned = {}
 
-    db: Type[object]
-    manager: Type[object]
-
     def __new__(cls,
                 storage_type: Optional[Literal['sql', 'json']] = None
                 ) -> "Storage":

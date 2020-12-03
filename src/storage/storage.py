@@ -1,4 +1,4 @@
-from typing import Optional, Type
+from typing import Optional, Type, Literal
 
 
 class Storage:
@@ -8,7 +8,8 @@ class Storage:
     manager: Type[object]
 
     def __new__(cls,
-                storage_type: Optional[str] = None) -> "Storage":
+                storage_type: Optional[Literal['sql', 'json']] = None
+                ) -> "Storage":
         # We do all imports inside of the methods scope,
         # to avoid circular dependencies since we import this
         # module from across the board in the package

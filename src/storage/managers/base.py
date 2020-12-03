@@ -9,13 +9,13 @@ DeclarativeSubtype = TypeVar("DeclarativeSubtype", bound=DeclarativeMeta)
 
 
 class BaseManagerInterface(ABC):
-    def __init__(self, klass, storage, store_type: str):
+    def __init__(self, klass, storage, store_type):
         self.klass = klass
         self.db = storage
 
         # This value gives subclasses a way to execute
         # different code based on the type of storage we are using
-        self.db_type = store_type
+        self.db_type = store_type  # type: str
 
     def _is_static(self) -> bool:
         """ Check whether this manager is serving an instance or a class """

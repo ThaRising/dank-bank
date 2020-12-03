@@ -1,10 +1,7 @@
 from abc import ABC, abstractmethod
 from inspect import isclass
-from typing import Optional, Union, Type, TypeVar, List, Literal
 
 from drizm_commons.utils import is_dunder
-from sqlalchemy.ext.declarative import DeclarativeMeta
-from src.storage.root_types import StorageType
 
 
 class BaseManagerInterface(ABC):
@@ -23,7 +20,7 @@ class BaseManagerInterface(ABC):
         return False
 
     @abstractmethod
-    def save(self) -> None:
+    def save(self):
         pass
 
     @abstractmethod
@@ -31,11 +28,11 @@ class BaseManagerInterface(ABC):
         pass
 
     @abstractmethod
-    def delete(self, **kwargs) -> None:
+    def delete(self):
         pass
 
     @abstractmethod
-    def read(self, *args, **kwargs):
+    def _read(self, *args, **kwargs):
         """
         Will take either one positional argument or n-keyword arguments.
 
@@ -50,11 +47,17 @@ class BaseManagerInterface(ABC):
         """
         pass
 
+    def get(self, identifier):
+        return self._read(identifier)
+
+    def filter(self, **kwargs):
+        return self._read(**kwargs)
+
     def all(self):
         """
         Syntactic / Semantic sugar for querying all entities of a Model.
         """
-        return self.read()
+        return self._read()
 
 
 class AbstractManager:
@@ -72,10 +75,7 @@ class AbstractManager:
     selected Manager with the addition of the user specified Methods.
     """
 
-    def __new__(cls,
-                klass,
-                storage_type: Optional[StorageType] = None
-                ) -> BaseManagerInterface:
+    def __new__(cls, klass, storage_type=None):
         from ..storage import Storage
         from drizm_commons.sqla import Database
 

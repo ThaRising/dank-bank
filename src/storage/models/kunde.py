@@ -128,4 +128,4 @@ class Kunde(ManagerMixin, Base):
     @property
     def konten(self):
         from .konto import Konto
-        return Konto.objects.read(Konto, besitzer=self.pk)
+        return Konto.objects.filter(besitzer=self.pk)

@@ -1,19 +1,58 @@
 import datetime
 import uuid
-from typing import Union
+from typing import Union, Optional
 
+import bcrypt
+import sqlalchemy as sqla
 from dateutil.relativedelta import relativedelta
 from drizm_commons.sqla import Base
+from sqlalchemy.ext.declarative import DeclarativeMeta
 from sqlalchemy.orm import validates
 
-from ..managers import BaseManager, ManagerMixin
-import sqlalchemy as sqla
+from ..managers import ManagerMixin, AbstractManager
+
+
+class KundenManager(AbstractManager):
+    klass: "Kunde"
+
+    # noinspection PyMethodMayBeStatic
+    def hash_password(self, cleartext_password: str) -> str:
+        return bcrypt.hashpw(
+            bytes(cleartext_password),
+            bcrypt.gensalt()
+        ).decode()
+
+    # noinspection PyMethodMayBeStatic
+    def is_password_valid(self,
+                          cleartext_password: str,
+                          hashed_password: str) -> bool:
+        return bcrypt.checkpw(
+            bytes(cleartext_password),
+            bytes(hashed_password)
+        )
+
+    def login_user(self,
+                   username: str,
+                   password: str) -> Optional[DeclarativeMeta]:
+        """
+        Return a user object if the provided credentials are valid,
+        otherwise return None
+        """
+        user = self.read(username=username)
+        if self.is_password_valid(
+            password, user.password
+        ):
+            return user
 
 
 class Kunde(ManagerMixin, Base):
-    manager = BaseManager
+    manager = KundenManager
 
     pk = sqla.Column(sqla.String, primary_key=True)
+
+    username = sqla.Column(sqla.String, unique=True)
+    password = sqla.Column(sqla.String)
+
     name = sqla.Column(sqla.String)
     strasse = sqla.Column(sqla.String(100))
     stadt = sqla.Column(sqla.String)

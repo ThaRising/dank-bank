@@ -1,12 +1,7 @@
-from typing import Optional, Type, Literal
-
-
 class Storage:
     __interned = {}
 
-    def __new__(cls,
-                storage_type: Optional[Literal['sql', 'json']] = None
-                ) -> "Storage":
+    def __new__(cls, storage_type=None):
         # We do all imports inside of the methods scope,
         # to avoid circular dependencies since we import this
         # module from across the board in the package

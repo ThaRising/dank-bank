@@ -1,18 +1,24 @@
 from abc import ABC
-from typing import overload, Generic, Dict, Any, List
+from typing import Generic, Dict, Any, List, Optional, TypeVar
 
 from sqlalchemy.ext.declarative import DeclarativeMeta
 
-from src.storage.root_types import ManagerT, AnyScalar, Identifier, StorageType
+from src.storage.root_types import (
+    ManagerT,
+    AnyScalar,
+    Identifier,
+    StorageType,
+    DatabaseObject
+)
 
 
 class BaseManagerInterface(ABC, Generic[ManagerT]):
-    klass: DeclarativeMeta
+    klass: DatabaseObject
     db: ManagerT
     db_type: StorageType
 
     def __init__(self,
-                 klass: DeclarativeMeta,
+                 klass: DatabaseObject,
                  storage: ManagerT,
                  store_type: StorageType
                  ) -> None:
@@ -22,24 +28,28 @@ class BaseManagerInterface(ABC, Generic[ManagerT]):
 
     def save(self) -> None: ...
 
-    def update(self, data: Dict[str, Any]) -> DeclarativeMeta: ...
+    def update(self, data: Dict[str, Any]) -> DatabaseObject: ...
 
-    def delete(self, **kwargs: AnyScalar) -> None: ...
+    def delete(self) -> None: ...
 
-    @overload
-    def read(self,
-             unique_identifier: Identifier
-             ) -> DeclarativeMeta:
+    def _read(self, *args, **kwargs): ...
+
+    def get(self, identifier: Identifier) -> DatabaseObject: ...
+
+    def filter(self, **kwargs: AnyScalar) -> List[DatabaseObject]: ...
+
+    def all(self) -> List[DatabaseObject]: ...
+
+
+T = TypeVar("T", bound=BaseManagerInterface)
+
+
+class AbstractManager(T):
+    def __new__(cls,
+                klass: DeclarativeMeta,
+                storage_type: Optional[StorageType] = None
+                ) -> BaseManagerInterface:
         ...
-
-    @overload
-    def read(self, **kwargs: AnyScalar) -> List[DeclarativeMeta]: ...
-
-    def all(self) -> List[DeclarativeMeta]: ...
-
-
-class AbstractManager(BaseManagerInterface):
-    ...
 
 
 class BaseManager(AbstractManager):

@@ -53,6 +53,39 @@ Not supported (or only indirectly):
 - Defaults declared in SQLA Column types
 - Filtering Parameters e.g. name__in,
 all filtering is exact
+- Numeric Auto-Incrementing PrimaryKeys
+
+## Usage - Manager API
+
+**Calling the Manager:**  
+``Model.objects``
+
+Example:  
+``Kunde.objects.all()``
+
+*.save()*  
+Save the current object in the database.  
+Raises src.storage.exc.ObjectAlreadyExists
+if the object does not pass UNIQUE checks.
+
+*.update()*  
+Save the state of the object in the database.
+Returns the updated instance.
+
+*.delete()*  
+Delete the current object from the database.
+
+*.get()*  
+Get an instance by its primary key.
+Raises src.storage.exc.ObjectNotFound
+if no object was found for the given identifier.
+
+*.filter()*  
+Get all objects from the database that match
+the specified set of filter params.
+
+*.all()*  
+Get all objects of this Model from the database.
 
 ## Usage - Examples
 
@@ -108,7 +141,7 @@ from src.storage import Storage, models
 
 Storage()
 
-kunde_koch = models.Kunde.objects.read(
+kunde_koch = models.Kunde.objects.filter(
     username="ben.koch"
 )
 # Returns a list of length 1 containing the user

@@ -1,24 +1,22 @@
 import datetime
 
-from src.storage import get_storage, get_controller
+from src.storage import Storage
 from src.storage.models import Kunde, Konto
 
+
 if __name__ == '__main__':
-    db = get_storage("json")
-    db.create()
-    Controller = get_controller(db)
+    Storage("sql")
+    Storage().db.create()
+
     kunde = Kunde(
         name="Ben Koch",
+        username="ben.koch",
+        password="security420",
         plz="16386",
         stadt="Berlin",
         strasse="fgr rgtert ergert ergtert",
         geb_date=datetime.date(2000, 1, 1)
     )
-    kunde_controller = Controller(kunde)
-    kunde_controller.create()
-    konto = Konto(
-        besitzer=kunde.pk
-    )
-    konto_controller = Controller(konto)
-    konto_controller.create()
-    print(kunde.konten)
+    kunde.objects.save()
+    print(kunde.objects.all())
+    print(Kunde.objects.all())

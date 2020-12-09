@@ -1,7 +1,6 @@
-from drizm_commons.inspect import SQLAIntrospector
+import sqlalchemy.exc
 from sqlalchemy import inspect
 from sqlalchemy.ext.declarative import DeclarativeMeta
-import sqlalchemy.exc
 
 from .base import BaseManagerInterface
 from ..exc import ObjectNotFound, ObjectAlreadyExists
@@ -13,19 +12,6 @@ class SqlManager(BaseManagerInterface):
         if not isinstance(self.klass, DeclarativeMeta):
             klass = self.klass.__class__
         return klass
-
-    def _get_identifier_column_name(self) -> str:
-        primary_keys = SQLAIntrospector(self.klass).primary_keys()
-        if len(primary_keys) > 1:
-            raise TypeError(
-                "Composite-Primary Keys are not supported by this Manager"
-            )
-        return primary_keys[0]
-
-    def _get_identifier(self):
-        return getattr(
-            self.klass, self._get_identifier_column_name()
-        )
 
     def _is_transient(self) -> bool:
         return inspect(self.klass).transient

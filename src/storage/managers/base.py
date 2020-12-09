@@ -1,7 +1,8 @@
-from abc import ABC, abstractmethod
+from abc import ABC, abstractmethod, ABCMeta
 from inspect import isclass
 
 from drizm_commons.utils import is_dunder
+from drizm_commons.inspect import SQLAIntrospector
 
 
 class BaseManagerInterface(ABC):
@@ -18,6 +19,19 @@ class BaseManagerInterface(ABC):
         if isclass(self.klass):
             return True
         return False
+
+    def _get_identifier_column_name(self):
+        primary_keys = SQLAIntrospector(self.klass).primary_keys()
+        if len(primary_keys) > 1:
+            raise TypeError(
+                "Composite-Primary Keys are not supported by this Manager"
+            )
+        return primary_keys[0]
+
+    def _get_identifier(self):
+        return getattr(
+            self.klass, self._get_identifier_column_name()
+        )
 
     @abstractmethod
     def save(self):

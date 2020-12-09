@@ -13,22 +13,20 @@ from ..managers import ManagerMixin, AbstractManager
 
 
 class KundenManager(AbstractManager):
-    klass: "Kunde"
-
     # noinspection PyMethodMayBeStatic
     def hash_password(self, cleartext_password: str) -> str:
         return bcrypt.hashpw(
-            bytes(cleartext_password),
+            cleartext_password.encode(),
             bcrypt.gensalt()
-        ).decode()
+        ).decode("utf-8")
 
     # noinspection PyMethodMayBeStatic
     def is_password_valid(self,
                           cleartext_password: str,
                           hashed_password: str) -> bool:
         return bcrypt.checkpw(
-            bytes(cleartext_password),
-            bytes(hashed_password)
+            cleartext_password.encode("utf-8"),
+            hashed_password.encode("utf-8")
         )
 
     def login_user(self,
@@ -38,11 +36,17 @@ class KundenManager(AbstractManager):
         Return a user object if the provided credentials are valid,
         otherwise return None
         """
-        user = self.read(username=username)
+        user = self.filter(username=username)
+        if len(user) > 1:
+            raise RuntimeError(
+                "Critical error, duplicate users in database."
+            )
+        user = user[0]
         if self.is_password_valid(
             password, user.password
         ):
             return user
+        return None
 
 
 class Kunde(ManagerMixin, Base):
@@ -60,7 +64,11 @@ class Kunde(ManagerMixin, Base):
     geb_date = sqla.Column(sqla.Date)
 
     def __init__(self, **kwargs) -> None:
-        self.pk = uuid.uuid4().hex
+        if kwargs.get("pk"):
+            pk = kwargs.pop("pk")
+        else:
+            pk = uuid.uuid4().hex
+        self.pk = pk
         super(Kunde, self).__init__(**kwargs)
 
     @validates("name")

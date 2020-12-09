@@ -1,7 +1,5 @@
-import json
-from pathlib import Path
-from copy import deepcopy
 import datetime
+import json
 
 from drizm_commons.inspect import SQLAIntrospector
 from drizm_commons.sqla import Registry, Base, SqlaDeclarativeEncoder
@@ -79,13 +77,7 @@ class JsonManager(BaseManagerInterface):
         with open(self.filepath, "w") as fout:
             # read the file -> add some content -> overwrite the file
             current_content = self._read_file_contents()
-
-            # Make sure that there is no instance with
-            # the same unique fields already here
-            pk_column = self._get_identifier_column_name()
-            instance_pk = self._get_identifier()
-            unique_keys = self.inspect.unique_keys()
-
+            self._check_unique(current_content)
             current_content.append(self.klass)
             self._save(current_content, fout)
 
@@ -145,7 +137,7 @@ class JsonManager(BaseManagerInterface):
                     raise ObjectNotFound(
                         f"Object of type '{self.klass.__name__}' "
                         f"with primary key '{pk}', "
-                        f"could not be found."
+                        "could not be found."
                     )
 
                 index = find_index_by_value_at_key(

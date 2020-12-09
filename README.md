@@ -46,13 +46,14 @@ print(kunden)
 Storage().db.destroy()
 ````
 
-#### Limitations
+## Limitations
 
 Not supported (or only indirectly):
 - Direct relationship traversal
 - Defaults declared in SQLA Column types
-- Filtering Parameters e.g. name__in,
-all filtering is exact
+- Filtering Parameters e.g. a Django-Style
+"name__in", all filtering is exact and
+case-sensitive
 - Numeric Auto-Incrementing PrimaryKeys
 
 ## Usage - Manager API
@@ -94,25 +95,25 @@ Create SQL Database:
 from src.storage import Storage
 
 # Initialize Storage
-Storage("sql")
-Storage().db.create()
+storage = Storage("sql")
+storage.db.create()
 
 # Do Stuff
 
 # Clear Database
-Storage().db.destroy()
+storage.db.destroy()
 ````
 
 Create JSON Database:
 ````python
 from src.storage import Storage
 
-Storage("json")
-Storage().db.create()
+storage = Storage("json")
+storage.db.create()
 
 # Do Stuff
 
-Storage().db.destroy()
+storage.db.destroy()
 ````
 
 Create a Customer:
@@ -120,13 +121,12 @@ Create a Customer:
 from src.storage import Storage, models
 import datetime
 
-Storage("sql")
-Storage().db.create()
+# Initialize the storage as seen above
 
 kunde = models.Kunde(
     name="Ben Koch",
     username="ben.koch",
-    password="security420",
+    password=models.Kunde.objects.hash_password("security420"),
     plz="16386",
     stadt="Berlin",
     strasse="fgr rgtert ergert ergtert",
@@ -137,12 +137,19 @@ kunde.objects.save()
 
 Retrieve a customer by their username:
 ````python
-from src.storage import Storage, models
-
-Storage()
-
-kunde_koch = models.Kunde.objects.filter(
+kunde_koch = Kunde.objects.filter(
     username="ben.koch"
 )
 # Returns a list of length 1 containing the user
+````
+
+Retrieve a bank-account by its ID:
+````python
+kontonummer = "123abchiuiui"
+my_id = Konto.objects.get(kontonummer)
+````
+
+Get all customers:
+````python
+kunden = Kunde.objects.all()
 ````

@@ -46,6 +46,7 @@ class KundenManager(AbstractManager):
             password, user.password
         ):
             return user
+        return None
 
 
 class Kunde(ManagerMixin, Base):
@@ -64,9 +65,6 @@ class Kunde(ManagerMixin, Base):
 
     def __init__(self, **kwargs) -> None:
         self.pk = uuid.uuid4().hex
-        self.password = self.objects.hash_password(
-            kwargs.pop("password")
-        )
         super(Kunde, self).__init__(**kwargs)
 
     @validates("name")

@@ -64,7 +64,11 @@ class Kunde(ManagerMixin, Base):
     geb_date = sqla.Column(sqla.Date)
 
     def __init__(self, **kwargs) -> None:
-        self.pk = uuid.uuid4().hex
+        if kwargs.get("pk"):
+            pk = kwargs.pop("pk")
+        else:
+            pk = uuid.uuid4().hex
+        self.pk = pk
         super(Kunde, self).__init__(**kwargs)
 
     @validates("name")

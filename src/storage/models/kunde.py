@@ -1,22 +1,75 @@
 import datetime
-import random
-import string
 import uuid
-from typing import Union
+from typing import Union, Optional
 
+import bcrypt
 import sqlalchemy as sqla
 from dateutil.relativedelta import relativedelta
 from drizm_commons.sqla import Base
+from sqlalchemy.ext.declarative import DeclarativeMeta
 from sqlalchemy.orm import validates
 
+from ..managers import ManagerMixin, AbstractManager
 
-class Kunde(Base):
+
+class KundenManager(AbstractManager):
+    # noinspection PyMethodMayBeStatic
+    def hash_password(self, cleartext_password: str) -> str:
+        return bcrypt.hashpw(
+            cleartext_password.encode(),
+            bcrypt.gensalt()
+        ).decode("utf-8")
+
+    # noinspection PyMethodMayBeStatic
+    def is_password_valid(self,
+                          cleartext_password: str,
+                          hashed_password: str) -> bool:
+        return bcrypt.checkpw(
+            cleartext_password.encode("utf-8"),
+            hashed_password.encode("utf-8")
+        )
+
+    def login_user(self,
+                   username: str,
+                   password: str) -> Optional[DeclarativeMeta]:
+        """
+        Return a user object if the provided credentials are valid,
+        otherwise return None
+        """
+        user = self.filter(username=username)
+        if len(user) > 1:
+            raise RuntimeError(
+                "Critical error, duplicate users in database."
+            )
+        user = user[0]
+        if self.is_password_valid(
+            password, user.password
+        ):
+            return user
+        return None
+
+
+class Kunde(ManagerMixin, Base):
+    manager = KundenManager
+
     pk = sqla.Column(sqla.String, primary_key=True)
+
+    username = sqla.Column(sqla.String, unique=True)
+    password = sqla.Column(sqla.String)
+
     name = sqla.Column(sqla.String)
     strasse = sqla.Column(sqla.String(100))
     stadt = sqla.Column(sqla.String)
     plz = sqla.Column(sqla.String)
     geb_date = sqla.Column(sqla.Date)
+
+    def __init__(self, **kwargs) -> None:
+        if kwargs.get("pk"):
+            pk = kwargs.pop("pk")
+        else:
+            pk = uuid.uuid4().hex
+        self.pk = pk
+        super(Kunde, self).__init__(**kwargs)
 
     @validates("name")
     def validate_name(self, _, name) -> str:
@@ -79,53 +132,8 @@ class Kunde(Base):
         assert geb_date < min_date
 
         return geb_date
-    
-    def __init__(self, **kwargs) -> None:
-        self.pk = uuid.uuid4().hex
-        super(Kunde, self).__init__(**kwargs)
 
     @property
     def konten(self):
-        from . import get_storage, get_controller
-        Controller = get_controller(get_storage())
-        return Controller.read(Konto, besitzer=self.pk)
-
-
-class Konto(Base):
-    pk = None
-    kontonummer = sqla.Column(sqla.String, primary_key=True)
-    kontostand = sqla.Column(sqla.Integer)
-    besitzer = sqla.Column(
-        sqla.String,
-        sqla.ForeignKey(
-            "kunde.pk"
-        )
-    )
-    waehrung = sqla.Column(
-        sqla.String,
-        sqla.ForeignKey(
-            "waehrung.code"
-        )
-    )
-
-    def __init__(self, **kwargs) -> None:
-        # generate 12-digit long mix,
-        # of random uppercase letters and digits
-        self.kontonummer = "".join(
-            random.choices(
-                (string.ascii_uppercase, string.digits), k=12
-            )
-        )
-        if kwargs.get("kontostand"):
-            self.kontostand = kwargs.pop("kontostand")
-        else:
-            self.kontostand = 0
-        super(Konto, self).__init__(**kwargs)
-
-
-class Waehrung(Base):
-    pk = None
-    code = sqla.Column(sqla.String(3), primary_key=True)
-
-
-__all__ = ["Kunde", "Konto", "Waehrung"]
+        from .konto import Konto
+        return Konto.objects.filter(besitzer=self.pk)

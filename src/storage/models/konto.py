@@ -24,11 +24,15 @@ class Konto(ManagerMixin, Base):
     def __init__(self, **kwargs) -> None:
         # generate 12-digit long mix,
         # of random uppercase letters and digits
-        self.kontonummer = "".join(
-            random.choices(
-                (string.ascii_uppercase, string.digits), k=12
+        if kwargs.get("kontonummer"):
+            self.kontonummer = kwargs.pop("kontonummer")
+        else:
+            self.kontonummer = "".join(
+                random.choices(
+                    (string.ascii_uppercase + string.digits), k=12
+                )
             )
-        )
+
         if kwargs.get("kontostand"):
             self.kontostand = kwargs.pop("kontostand")
         else:

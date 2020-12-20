@@ -41,6 +41,8 @@ class KundenManager(AbstractManager):
             raise RuntimeError(
                 "Critical error, duplicate users in database."
             )
+        elif len(user) == 0:
+            return None
         user = user[0]
         if self.is_password_valid(
             password, user.password

@@ -1,5 +1,9 @@
 from typing import Optional
 import sys
+from src.storage import Storage
+from src.storage import Storage, models
+from src.storage.models.kunde import Kunde
+import datetime
 
 
 class TUI:
@@ -21,6 +25,7 @@ class TUI:
                 self.pass_option(option)
 
                 if not self.keep_running():
+                    Storage().db.destroy()
                     sys.exit(0)
                 if self.change_user_or_stay_logged_in():
                     x = False
@@ -36,30 +41,47 @@ class TUI:
             return False
         if file_type == 1:
             print('SQL wurde gewählt')
+            Storage("sql")
+            Storage().db.create()
+            self.create_user_account()
             return file_type
         elif file_type == 2:
             print('JSON wurde gewählt')
+            Storage("json")
+            Storage().db.create()
+            self.create_user_account()
             return file_type
         else:
             print('Bitte geben sie eine gültigen Wert ein!\n')
 
     def login_prompt(self) -> Optional[int]:
-        # idgaf about this method, get rekt
-        username = str(input('Username: '))
+
+        username = self.login_username_check()
         account_id = self.login_account_id_check()
         password = str(input('Passwort: '))
         print(username, account_id, password, '\n')
         conUser = True
+
+        kunde = Kunde.objects.login_user(username, password)
+
+        print("Die Variable kunde enthält: ", kunde)
+
+        if kunde:
+            print("lele")
+        elif kunde:
+            print("idek whats supposed to happen")
+
+        #TODO Login Validation
+        #kunde.validate_name(username)
+
         return conUser
 
+    def login_username_check(self):
+        username = str(input("Username: "))
+        return username
+
     def login_account_id_check(self):
-        while True:
-            try:
-                account_id = int(input('Account ID: '))
-            except ValueError:
-                print('Ungültige Eingabe! Bitte Integer Wert eingeben.\n')
-            else:
-                break
+        account_id = str(input("Account ID: "))
         return account_id
 
     def choose_option(self) -> Optional[int]:
@@ -131,6 +153,25 @@ class TUI:
         except ValueError:
             print("Ungültiger Input! Programm wird fortgefahren")
             return 1
+
+    def create_user_account(self):
+        print("Test-Konto von Ben Koch wird generiert")
+        kunde = models.Kunde(
+            name="Ben Koch",
+            username="ben.koch",
+            password="security420",
+            plz="16386",
+            stadt="Berlin",
+            strasse="Schnelle Strasse 12",
+            geb_date=datetime.date(2000,12,6)
+        )
+        kunde.objects.save()
+        konto = models.Konto(
+            besitzer=kunde.pk
+        )
+        konto.objects.save()
+        print(konto.kontonummer)
+
 
 
 if __name__ == '__main__':

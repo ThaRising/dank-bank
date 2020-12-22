@@ -73,6 +73,23 @@ class Kunde(ManagerMixin, Base):
         self.pk = pk
         super(Kunde, self).__init__(**kwargs)
 
+    @validates("username")
+    def validate_username(self, _, username) -> str:
+        assert len(username) >= 5
+
+        return username
+
+    @validates("password")
+    def validate_username(self, _, password) -> str:
+        assert len(password) >= 3
+
+        assert all([
+            any([c.isdigit() for c in password]),
+            any([c.isascii() for c in password]),
+        ])
+
+        return password
+
     @validates("name")
     def validate_name(self, _, name) -> str:
         # make sure we have at least 2 word-blocks in our input

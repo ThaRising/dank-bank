@@ -3,7 +3,8 @@ from getpass import getpass
 from src.storage.models.kunde import Kunde
 from src.storage.models.konto import Konto
 from typing import Any, Optional, TypeVar, Callable
-from datetime import datetime
+from datetime import date
+import decimal
 
 DictItem = TypeVar("DictItem")
 
@@ -25,6 +26,7 @@ class TUI:
     balance: Konto
 
     def __init__(self) -> None:
+        # Select SQL or JSON
         storage_types = {
             "sql": lambda: Storage("sql"),
             "json": lambda: Storage("json")
@@ -40,36 +42,76 @@ class TUI:
                     storage_type.lower()
                 ]()
                 self.storage = storage
+                self.storage.db.create()
             except KeyError:
                 print("Falsche Eingabe!")
             else:
                 break
 
-        self.user = self.login_user()
+        # Select new or existing Kunde
+        while (p := input(
+                "Haben Sie bereits einen Account J/N?: "
+        )) not in ("j", "J", "n", "N"):
+            print("Ungültige Eingabe.")
 
+        if p.lower() == "j":
+            self.user = self.login_user()
+        else:
+            self.user = self.create_account()
+
+        # Select new or existing Konto
+        if not self.user.konten:
+            konto = Konto(
+                besitzer=self.user.pk
+            )
+            konto.objects.save()
+
+        for i, konto in enumerate(self.user.konten):
+            print(f"{i + 1}. {konto.kontonummer}:")
+
+            print(
+                self._format_balance(konto.kontostand)
+            )
+
+        konto_index = input("Wähle dein Konto aus: ")
+        self.konto = self.user.konten[int(konto_index) - 1]
+
+        # Select action
         action = self.select_action()
         action()
 
+    # noinspection PyMethodMayBeStatic
+    def _format_balance(self, amount: int) -> str:
+        balance = f"{amount!s:0>4}"
+        balance = balance[:-2] + "." + balance[-2:]
+        return f"{balance}€"
+
     def create_account(self) -> Kunde:
-        # Still needs some validation
-        # Check if User has account
-        # if not he needs to input credentials
-        new_account = input("Haben Sie bereits einen Account J/N?: ")
-        if new_account.lower() == "j":
-            while True:
-                kundendaten= {}
-                kundendaten["username"] = input("Username: ")
-                kundendaten["password"] = getpass("Passwort: ")
-                kundendaten["name"] = input("Vor und Nachname: ")
-                kundendaten["strasse"] = input("Straße und Hausnummer: ")
-                kundendaten["stadt"] = input("Stadt: ")
-                kundendaten["plz"] = input("Postleitzahl: ")
-                kundendaten["geb_date"] = input(datetime.date())
-                kunde = Kunde(**kundendaten)
-                kunde.objects.save()
-                return kunde
-        else:
-            continue
+        kundendaten= {}  # noqa dict literal
+        kundendaten["username"] = input("Username: ")
+        kundendaten["password"] = Kunde.objects.hash_password(
+            getpass("Passwort: ")
+        )
+        kundendaten["name"] = input("Vor und Nachname: ")
+        kundendaten["strasse"] = input("Straße und Hausnummer: ")
+        kundendaten["stadt"] = input("Stadt: ")
+        kundendaten["plz"] = input("Postleitzahl: ")
+
+        print("Bitte geben sie ihr Geburtsdatum ein.")
+        print("Format: dd mm yyyy")
+        geb_date = input()
+        d, m, y = [int(i) for i in geb_date.split()]
+        kundendaten["geb_date"] = date(
+            day=d,
+            month=m,
+            year=y
+        )
+
+        kunde = Kunde(**kundendaten)
+        kunde.objects.save()
+
+        return kunde
+
     def login_user(self) -> Kunde:
         while True:
             print("=====LOGIN=====")
@@ -81,12 +123,12 @@ class TUI:
             print("Falsches Passwort oder Username.")
 
     def select_action(self) -> Callable:
-        actions = {
+        actions = Switch({
             ("1", "einzahlen"): self.do_deposit,
             ("2", "auszahlen"): self.do_withdraw,
             ("3", "überweisung"): self.do_transfer,
             ("4", "kontostand"): self.show_balance,
-        }
+        })
 
         while True:
             print("Was wollen sie tun?")
@@ -104,27 +146,25 @@ class TUI:
                 return action_to_execute
 
     def do_deposit(self) -> Konto:
-        while i == 1:
-            print("Wie viel möchten Sie einzahlen? Die Zahl muss ein Integer sein.")
-            einzahlung = int(input())
-            balance = Konto.kontostand
-            try:
-                new_balance = balance + einzahlung
-            except ValueError:
-                print("Eingabe muss eine Integer sein")
-            else:
-                print("Der neue Kontostand ist: "new_balance"€")
-                return new_balance
-            i = input("0 um die Einzahlung zu beenden\n "
-                      "1 für eine weitere Einzahlung")
-            if i == 0:
-                break
-            elif i == 1:
-                continue
-            else:
-                print("Es muss entweder ")
+        print(
+            "Wie viel möchten Sie einzahlen?\n"
+            "Die Zahl muss ein Integer sein."
+        )
+        einzahlung = input()
 
+        for e in (".", ","):
+            if e in einzahlung:
+                num, dec = einzahlung.split(e)
 
+                if len(dec) > 2:
+                    raise ValueError
+
+                einzahlung = einzahlung.replace(e, "")
+
+        einzahlung = int(einzahlung) * 100
+        self.konto.kontostand += einzahlung
+        self.konto.objects.save()
+        print(self.show_balance())
 
     def do_withdraw(self):
         pass
@@ -133,4 +173,8 @@ class TUI:
         pass
 
     def show_balance(self):
-        pass
+        return self._format_balance(self.konto.kontostand)
+
+
+if __name__ == '__main__':
+    TUI()

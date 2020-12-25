@@ -128,7 +128,7 @@ class TUI(UI):
             # Check if the user provided a numeric index
             selection = int(selection)
 
-            if selection >= 0:
+            if selection <= 0:
                 raise IndexError
 
             return self.user.konten[selection - 1]

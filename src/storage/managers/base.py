@@ -11,8 +11,9 @@ class BaseManagerInterface(ABC):
         self.db = storage
 
         # This value gives subclasses a way to execute
-        # different code based on the type of storage we are using
-        self.db_type = store_type
+        # different code based on the type of storage we are using.
+        # Manager classes can also manually specify this as a class attribute.
+        self.db_type = store_type or self.__class__.db_type
 
     def _is_static(self) -> bool:
         """ Check whether this manager is serving an instance or a class """

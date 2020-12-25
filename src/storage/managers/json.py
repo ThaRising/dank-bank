@@ -6,10 +6,12 @@ from drizm_commons.sqla import Registry, Base, SqlaDeclarativeEncoder
 
 from .base import BaseManagerInterface
 from ..exc import ObjectAlreadyExists, ObjectNotFound
-from ..utils import find_index_by_value_at_key
+from src.utils import find_index_by_value_at_key
 
 
 class JsonManager(BaseManagerInterface):
+    db_type = "json"
+
     def __init__(self, *args, **kwargs) -> None:
         super().__init__(*args, **kwargs)
 

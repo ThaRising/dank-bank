@@ -1,5 +1,5 @@
 from abc import ABC
-from typing import Generic, Dict, Any, List, Optional, TypeVar
+from typing import Generic, Dict, Any, List, Optional, TypeVar, ClassVar
 
 from sqlalchemy.ext.declarative import DeclarativeMeta
 
@@ -15,6 +15,7 @@ from src.storage.root_types import (
 class BaseManagerInterface(ABC, Generic[ManagerT]):
     klass: DatabaseObject
     db: ManagerT
+    db_type: Optional[ClassVar[StorageType]]
     db_type: StorageType
 
     def __init__(self,

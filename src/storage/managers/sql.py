@@ -7,6 +7,8 @@ from ..exc import ObjectNotFound, ObjectAlreadyExists
 
 
 class SqlManager(BaseManagerInterface):
+    db_type = "sql"
+
     def _get_queryable_class(self):
         klass = self.klass
         if not isinstance(self.klass, DeclarativeMeta):

@@ -187,6 +187,17 @@ class TUI(UI):
                 else:
                     return self.login_user()
 
+            except AssertionError as exc:
+                try:
+                    message = exc.args[0]
+
+                except AttributeError or IndexError:
+                    message = "Einer der eingegebenen Werte ist ungültig."
+
+                print(message)
+                print("Bitte geben sie ihre Daten erneut ein.\n")
+                kundendaten = {}
+
         return kunde  # noqa ref before assignment
 
     def login_user(self) -> Kunde:

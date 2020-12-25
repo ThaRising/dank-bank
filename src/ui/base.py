@@ -30,6 +30,9 @@ class UI(ABC):
         Properly format user input of float-format strings to integers
         like the system needs them.
         """
+        if amount.startswith("-"):
+            raise ValueError("Values can not be negative.")
+
         separators = (".", ",")
 
         separators_present = [(s in amount) for s in separators]

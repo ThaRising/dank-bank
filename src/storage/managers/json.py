@@ -62,8 +62,9 @@ class JsonManager(BaseManagerInterface):
         }
 
         for entity in current_content:
+            entity: dict
             entity_unique_values = [
-                getattr(entity, key) for key in unique_keys
+                entity.get(key) for key in unique_keys
             ]
             for (attr_name, instance_value), entity_value in zip(
                 unique_values.items(), entity_unique_values
@@ -76,9 +77,10 @@ class JsonManager(BaseManagerInterface):
                     )
 
     def save(self):
+        current_content = self._read_file_contents()
+
         with open(self.filepath, "w") as fout:
             # read the file -> add some content -> overwrite the file
-            current_content = self._read_file_contents()
             self._check_unique(current_content)
             current_content.append(self.klass)
             self._save(current_content, fout)

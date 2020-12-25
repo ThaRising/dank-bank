@@ -88,23 +88,23 @@ class TUI(UI):
             self.konto = konto
             print(f"Konto: '{self.konto.kontonummer}', wurde gewählt.")
 
-            self.perform_actions()
-            print("Möchten sie eine weitere Aktion ausführen?")
-            print("Andernfalls wird das Programm beendet.")
+            while True:
+                self.perform_actions()
+                print("Möchten sie eine weitere Aktion ausführen?")
+                print("Andernfalls wird das Programm beendet.")
 
-            if self.yes_or_no_question():
-                while True:
+                if self.yes_or_no_question(text="Fortfahren (J) / Abbrechen (N): "):
                     print(
                         "Wollen sie mit dem aktuellen Kunde und Konto fortfahren?"
                     )
                     if self.yes_or_no_question():
-                        self.perform_actions()
+                        continue
 
                     else:
                         return self.mainloop()
 
-            else:
-                break
+                else:
+                    return
 
     def show_konten(self, konten: list) -> None:
         if not konten:
@@ -127,6 +127,10 @@ class TUI(UI):
         try:
             # Check if the user provided a numeric index
             selection = int(selection)
+
+            if selection >= 0:
+                raise IndexError
+
             return self.user.konten[selection - 1]
 
         except ValueError:

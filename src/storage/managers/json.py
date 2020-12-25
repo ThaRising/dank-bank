@@ -83,8 +83,10 @@ class JsonManager(BaseManagerInterface):
             # read the file -> add some content -> overwrite the file
             try:
                 self._check_unique(current_content)
-            finally:
+
+            except Exception as exc:  # noqa too broad exception clause
                 self._save(current_content, fout)
+                raise exc
 
             current_content.append(self.klass)
             self._save(current_content, fout)

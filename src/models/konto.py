@@ -3,7 +3,7 @@ import string
 
 from drizm_commons.sqla import Base
 
-from ..managers import BaseManager, ManagerMixin
+from src.storage.managers import BaseManager, ManagerMixin
 import sqlalchemy as sqla
 
 

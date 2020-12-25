@@ -1,8 +1,7 @@
 import pytest
 import datetime
 from src.storage.managers.base import BaseManagerInterface
-from src.storage.models.kunde import KundenManager
-from src.storage.models import Kunde, Konto
+from src.models import Kunde, Konto
 from src.storage.exc import ObjectNotFound
 
 

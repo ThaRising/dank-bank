@@ -1,4 +1,4 @@
 from .storage import Storage
-from . import models
+from .. import models
 
 __all__ = ["Storage", "models"]

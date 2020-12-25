@@ -9,7 +9,7 @@ from drizm_commons.sqla import Base
 from sqlalchemy.ext.declarative import DeclarativeMeta
 from sqlalchemy.orm import validates
 
-from ..managers import ManagerMixin, AbstractManager
+from src.storage.managers import ManagerMixin, AbstractManager
 
 
 class KundenManager(AbstractManager):

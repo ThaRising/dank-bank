@@ -147,6 +147,13 @@ class JsonManager(BaseManagerInterface):
                     self._get_identifier_column_name(),
                     pk
                 )
+                if not index:
+                    raise ObjectNotFound(
+                        f"Object of type '{self.klass.__name__}' "
+                        f"with primary key '{pk}', "
+                        f"could not be found."
+                    )
+
                 item = current_content[index]
                 if not item:
                     raise ObjectNotFound(

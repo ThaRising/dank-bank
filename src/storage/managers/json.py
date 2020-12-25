@@ -81,7 +81,11 @@ class JsonManager(BaseManagerInterface):
 
         with open(self.filepath, "w") as fout:
             # read the file -> add some content -> overwrite the file
-            self._check_unique(current_content)
+            try:
+                self._check_unique(current_content)
+            finally:
+                self._save(current_content, fout)
+
             current_content.append(self.klass)
             self._save(current_content, fout)
 

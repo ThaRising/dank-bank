@@ -101,7 +101,7 @@ class TUI(UI):
                         self.perform_actions()
 
                     else:
-                        continue
+                        return self.mainloop()
 
             else:
                 break

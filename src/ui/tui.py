@@ -95,6 +95,9 @@ class TUI(UI):
                     self.konto = konto
 
                 else:
+                    print("Ihre Konten:")
+                    self.show_konten(self.user.konten)
+
                     while not (konto := self.choose_bank_account()):
                         continue
 
@@ -167,7 +170,10 @@ class TUI(UI):
         konto = Konto(
             besitzer=self.user.pk
         )
+        konto.objects.save()
+
         print(f"Neues Konto wurde erstellt, ihre Kontonummer ist: '{konto.kontonummer}'")
+
         return konto
 
     def create_account(self) -> Kunde:

@@ -82,8 +82,25 @@ class TUI(UI):
             print("Ihre Konten:")
             self.show_konten(self.user.konten)
 
-            while not (konto := self.choose_bank_account()):
-                continue
+            print(
+                "Möchten sie ein neues Konto eröffnen, "
+                "oder ein bestehendes Konto auswählen?"
+            )
+            if self.yes_or_no_question("Neues Konto (J) / Bestehendes Konto (N): "):
+                konto = self.create_bank_account()
+
+                print("Wollen sie ihr neues Konto direkt auswählen?")
+
+                if self.yes_or_no_question():
+                    self.konto = konto
+
+                else:
+                    while not (konto := self.choose_bank_account()):
+                        continue
+
+            else:
+                while not (konto := self.choose_bank_account()):
+                    continue
 
             self.konto = konto
             print(f"Konto: '{self.konto.kontonummer}', wurde gewählt.")
@@ -145,6 +162,13 @@ class TUI(UI):
             print(f"Kein verfügbares Konto an der Stelle {selection}.")
 
         return None
+
+    def create_bank_account(self) -> Konto:
+        konto = Konto(
+            besitzer=self.user.pk
+        )
+        print(f"Neues Konto wurde erstellt, ihre Kontonummer ist: '{konto.kontonummer}'")
+        return konto
 
     def create_account(self) -> Kunde:
         kundendaten= {}  # noqa dict literal
@@ -209,6 +233,13 @@ class TUI(UI):
             if user:
                 return user
             print("Falsches Passwort oder Username.")
+            print("Möchten sie stattdessen einen neuen Account erstellen?")
+
+            if self.yes_or_no_question():
+                return self.create_account()
+
+            else:
+                continue
 
     def perform_actions(self):
         # Select action

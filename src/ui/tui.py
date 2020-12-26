@@ -186,15 +186,26 @@ class TUI(UI):
                 kundendaten["stadt"] = input("Stadt: ")
                 kundendaten["plz"] = input("Postleitzahl: ")
 
-                print("Bitte geben sie ihr Geburtsdatum ein.")
-                print("Format: dd mm yyyy")
-                geb_date = input()
-                d, m, y = [int(i) for i in geb_date.split()]
-                kundendaten["geb_date"] = date(
-                    day=d,
-                    month=m,
-                    year=y
-                )
+                while True:
+                    print("Bitte geben sie ihr Geburtsdatum ein.")
+                    print("Format: dd mm yyyy")
+                    geb_date = input()
+
+                    try:
+                        d, m, y = [int(i) for i in geb_date.split()]
+
+                    except ValueError:
+                        print("Ungültiger Werte für Datum.")
+                        print("Bitte erneut eingeben.")
+                        continue
+
+                    else:
+                        kundendaten["geb_date"] = date(
+                            day=d,
+                            month=m,
+                            year=y
+                        )
+                        break
 
             kundendaten["username"] = input("Username: ")
             kundendaten["password"] = Kunde.objects.hash_password(
@@ -356,7 +367,7 @@ class TUI(UI):
                 break
 
         print(
-            f"Überweisung von '{self.konto.kontonummer}' -> '{konto.kontonummer}"  # noqa
+            f"Überweisung von '{self.konto.kontonummer}' -> '{konto.kontonummer}'"  # noqa
         )
         print("Welche Summe wollen sie überweisen?")
 
@@ -364,6 +375,15 @@ class TUI(UI):
             try:
                 summe = input()
                 summe = self._format_deposit(summe)
+
+                if summe > self.konto.kontostand:
+                    print(
+                        "Sie können nicht mehr als den verfügbaren Saldo von "
+                        f"{self.show_balance(self.konto)} "
+                        "abheben."
+                    )
+                    continue
+
                 break
 
             except ValueError as exc:
@@ -376,7 +396,3 @@ class TUI(UI):
     def _show_balance(self) -> None:
         print("Der aktuelle Kontostand beträgt:")
         print(self.show_balance())
-
-
-if __name__ == '__main__':
-    TUI()

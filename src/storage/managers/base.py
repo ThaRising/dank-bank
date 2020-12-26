@@ -1,8 +1,8 @@
-from abc import ABC, abstractmethod, ABCMeta
+from abc import ABC, abstractmethod
 from inspect import isclass
 
-from drizm_commons.utils import is_dunder
 from drizm_commons.inspect import SQLAIntrospector
+from drizm_commons.utils import is_dunder
 
 
 class BaseManagerInterface(ABC):
@@ -22,6 +22,7 @@ class BaseManagerInterface(ABC):
         return False
 
     def _get_identifier_column_name(self):
+        """ Get the name of the primary key column """
         primary_keys = SQLAIntrospector(self.klass).primary_keys()
         if len(primary_keys) > 1:
             raise TypeError(
@@ -30,49 +31,55 @@ class BaseManagerInterface(ABC):
         return primary_keys[0]
 
     def _get_identifier(self):
+        """ Get the value of the primary key column """
         return getattr(
             self.klass, self._get_identifier_column_name()
         )
 
     @abstractmethod
     def save(self):
-        pass
+        """
+        Saves the current object to the database.
 
-    @abstractmethod
-    def update(self, data):
+        This can be used both to save a new object to the database
+        and to update an existing object.
+        """
         pass
 
     @abstractmethod
     def delete(self):
+        """
+        Remove the current object from the database.
+        """
         pass
 
     @abstractmethod
-    def _read(self, *args, **kwargs):
+    def get(self, identifier):
         """
-        Will take either one positional argument or n-keyword arguments.
+        Retrieve an instance by its primary key.
 
-        When a positional argument is provided it is assumed to be
-        the primary key of the object.
-        If this lookup fails this method will throw an error.
+        If no matching object is found,
+        a src.storage.exc.ObjectNotFound exception is raised.
+        """
+        pass
 
-        When keyword arguments are provided,
-        filtering will occur based on the provided parameters and their values.
+    @abstractmethod
+    def filter(self, **kwargs):
+        """
+        Do exact and case sensitive filtering,
+        based on provided kwargs.
+
         This will never throw an error and instead simply return an empty list,
         if no matching entities could be found.
         """
         pass
 
-    def get(self, identifier):
-        return self._read(identifier)
-
-    def filter(self, **kwargs):
-        return self._read(**kwargs)
-
+    @abstractmethod
     def all(self):
         """
         Syntactic / Semantic sugar for querying all entities of a Model.
         """
-        return self._read()
+        pass
 
 
 class AbstractManager:

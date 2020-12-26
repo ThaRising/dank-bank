@@ -80,13 +80,18 @@ Example:
 ``Kunde.objects.all()``
 
 *.save()*  
-Save the current object in the database.  
+Save the current object to the database.  
+Can also be used to update the content of
+the database with this object.  
+
 Raises src.storage.exc.ObjectAlreadyExists
 if the object does not pass UNIQUE checks.
 
+**DEPRECATED as per 26.12.2020**
 *.update()*  
 Save the state of the object in the database.
-Returns the updated instance.
+Returns the updated instance.  
+This API is deprecated and will no longer work!
 
 *.delete()*  
 Delete the current object from the database.

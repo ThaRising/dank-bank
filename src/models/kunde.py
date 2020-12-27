@@ -83,8 +83,10 @@ class Kunde(ManagerMixin, Base):
     def validate_username(self, _, password) -> str:
         assert len(password) >= 3, "Passwort muss mind. 3 Zeichen lang sein."
 
-        assert not password.isnumeric(), "Das Passwort muss sowohl Buchstaben und Zahlen enthalten."
-        assert not password.isalpha(), "Das Passwort muss sowohl Buchstaben und Zahlen enthalten."
+        assert not password.isnumeric(), ("Das Passwort muss sowohl Buchstaben, "
+                                          "als auch Zahlen enthalten.")
+        assert not password.isalpha(), ("Das Passwort muss sowohl Buchstaben, "
+                                        "als auch Zahlen enthalten.")
 
         return password
 
@@ -94,7 +96,8 @@ class Kunde(ManagerMixin, Base):
         assert len(name.split()) >= 2, "Name muss mindestens aus Vor und Nachname bestehen."
 
         # shortest possible name should be 4-chars + 1 whitespace
-        assert len(name) >= 5, "Name muss mindestens 5 Zeichen lang sein (4 Zeichen + 1 Leerzeile."
+        assert len(name) >= 5, ("Name muss mindestens 5 Zeichen lang sein "
+                                "(4 Zeichen + 1 Leerzeile).")
 
         # no numbers should be allowed in a name
         letter_is_num = [
@@ -109,10 +112,12 @@ class Kunde(ManagerMixin, Base):
         # address structure should be '<street-name> <street> <number>'
         # the <street> part is optional, so 2 blocks or more
         street_blocks = strasse.split()
-        assert len(street_blocks) >= 2, "Straße muss mind. aus einem Straßennamen und einer Hausnummer bestehen."
+        assert len(street_blocks) >= 2, ("Straße muss mind. aus einem Straßennamen "
+                                         "und einer Hausnummer bestehen.")
 
         # shortest possible street name would be sth like 'aweg 1'
-        assert len(strasse) >= 6, "Straße muss mind. 4 Zeichen haben und ein Leerzeichen + Hausnummer."
+        assert len(strasse) >= 6, ("Straße muss mind. 4 Zeichen haben"
+                                   " und ein Leerzeichen + Hausnummer.")
 
         return strasse
 

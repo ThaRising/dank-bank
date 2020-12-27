@@ -336,6 +336,8 @@ class TUI(UI):
                 if selection <= 0:
                     raise IndexError
 
+                return konten[selection - 1]
+
             except ValueError:
                 # the user provided an account-id
                 for konto in konten:
@@ -349,9 +351,6 @@ class TUI(UI):
                 # in the users bank account list
                 print(f"Kein verfügbares Konto an der Stelle {selection}.")
                 continue
-
-            else:
-                return konten[selection - 1]
 
     def perform_actions(self):
         # Select action

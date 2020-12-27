@@ -50,6 +50,12 @@ class KundenManager(AbstractManager):
             return user
         return None
 
+    def delete(self) -> None:
+        for konto in self.klass.konten:
+            konto.objects.delete()
+
+        super(type(self), self).delete()
+
 
 class Kunde(ManagerMixin, Base):
     manager = KundenManager

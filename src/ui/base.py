@@ -90,6 +90,14 @@ class UI(ABC):
         self.do_withdraw(sum_to_transfer, from_konto)
         self.do_deposit(sum_to_transfer, to_konto)
 
-    def show_balance(self, konto: Optional[models.Konto] = None):
+    def show_balance(self, konto: Optional[models.Konto] = None) -> str:
         konto = konto or self.konto
         return self._format_balance(konto.kontostand)
+
+    # noinspection PyMethodMayBeStatic
+    def do_delete_bank_account(self, konto: models.Konto) -> None:
+        konto.objects.delete()
+
+    # noinspection PyMethodMayBeStatic
+    def do_delete_user(self, user: models.Kunde) -> None:
+        user.objects.delete()

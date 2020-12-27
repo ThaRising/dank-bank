@@ -87,7 +87,7 @@ the database with this object.
 Raises src.storage.exc.ObjectAlreadyExists
 if the object does not pass UNIQUE checks.
 
-**DEPRECATED as per 26.12.2020**
+**DEPRECATED as of 26.12.2020**  
 *.update()*  
 Save the state of the object in the database.
 Returns the updated instance.  

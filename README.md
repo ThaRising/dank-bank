@@ -197,11 +197,12 @@ class Item(ManagerMixin, Base):
 ## Storage Limitations
 
 Not supported (or only indirectly):
-- Direct relationship traversal
+- Direct relationships and relationship
+  traversal as well as CASCADE
 - Defaults declared in SQLA Column types
 - Filtering Parameters e.g. a Django-Style
-"name__in", all filtering is exact and
-case-sensitive
+  "name__in", all filtering is exact and
+  case-sensitive
 - Numeric Auto-Incrementing PrimaryKeys
 
 ## API Documentation

@@ -209,19 +209,17 @@ class TUI(UI):
 
                     try:
                         d, m, y = [int(i) for i in geb_date.split()]
-
-                    except ValueError:
-                        print("Ungültiger Werte für Datum.")
-                        print("Bitte erneut eingeben.")
-                        continue
-
-                    else:
                         kundendaten["geb_date"] = date(
                             day=d,
                             month=m,
                             year=y
                         )
                         break
+
+                    except ValueError:
+                        print("Ungültiger Werte für Datum.")
+                        print("Bitte erneut eingeben.")
+                        continue
 
             kundendaten["username"] = input("Username: ")
             kundendaten["password"] = Kunde.objects.hash_password(

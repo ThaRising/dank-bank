@@ -125,9 +125,10 @@ class JsonManager(BaseManagerInterface):
             self._save(current_content, fout)
 
     def delete(self) -> None:
+        current_content = self._read_file_contents()
+
         with open(self.filepath, "w") as fout:
             # read the file -> delete some content -> overwrite the file
-            current_content = json.load(fout)
             index = find_index_by_value_at_key(
                 current_content,
                 self._get_identifier_column_name(),

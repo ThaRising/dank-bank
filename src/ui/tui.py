@@ -1,11 +1,14 @@
+import atexit
 from datetime import date
 from getpass import getpass
-from typing import Optional, Callable, ClassVar
+from typing import Optional, Callable, ClassVar, List, Tuple, Any
 
+import colorama
+
+from src.models import Kunde
+from src.models.konto import Konto
 from src.storage import Storage
 from src.storage.exc import ObjectAlreadyExists, ObjectNotFound
-from src.models.konto import Konto
-from src.models import Kunde
 from src.utils import IterableKeyDictionary
 from .base import UI
 
@@ -40,9 +43,66 @@ class TUI(UI):
         else:
             # Use the storage that the user supplied as a parameter
             self.storage = storage
-            print(f"{self.storage.manager.db_type.upper()} Datenspeicher wird genutzt.\n")
 
+        print(f"{self.storage.manager.db_type.upper()} Datenspeicher wird genutzt.\n")
         self.storage.db.create()
+        colorama.init(autoreset=True)
+        atexit.register(self.cleanup)
+
+    # noinspection PyMethodMayBeStatic
+    def cleanup(self) -> None:
+        colorama.deinit()
+
+    def mainloop(self):
+        while True:
+            # Select new or existing Kunde
+            while not self.user:
+                self.user_actions()
+
+            print(f"Willkommen, {self.user.name.strip()}!\n")
+
+            # If the user does not have a bank account yet
+            # we create a default one automatically
+            if not self.user.konten:
+                print("Es scheint so als haben sie bisher noch kein Konto bei uns.")
+                print("Wir haben ihnen automatisch eines eröffnet!\n")
+
+                konto = Konto(
+                    besitzer=self.user.pk
+                )
+                konto.objects.save()
+
+            while not self.konto:
+                self.konto_selection_actions()
+
+            print(f"Konto: '{self.konto.kontonummer}', wurde gewählt.")
+
+            while True:
+                self.perform_actions()
+
+                print("Möchten sie eine weitere Aktion ausführen?")
+                print("Andernfalls wird das Programm beendet.")
+
+                if self.yes_or_no_question(text="Fortfahren (J) / Abbrechen (N): "):
+                    print("Wollen sie mit dem aktuellen Kunden fortfahren?")
+
+                    if self.yes_or_no_question():
+                        print("Wollen sie mit dem aktuellen Konto fortfahren?")
+
+                        if self.yes_or_no_question():
+                            continue
+
+                        else:
+                            self.konto = None
+                            return self.mainloop()
+
+                    else:
+                        self.user = None
+                        self.konto = None
+                        return self.mainloop()
+
+                else:
+                    return
 
     def yes_or_no_question(self, text: Optional[str] = "J / N: ") -> bool:
         """ Ask the user a simple Yes or No question """
@@ -57,126 +117,82 @@ class TUI(UI):
                 print("Bitte erneut eingeben.")
                 continue
 
-    def mainloop(self):
-        while True:
-            # Select new or existing Kunde
-            print("Haben sie bereits einen Account?")
-            if self.yes_or_no_question():
-                self.user = self.login_user()
-
-            else:
-                self.user = self.create_account()
-
-            # Select new or existing Konto
-            if not self.user.konten:
-                # If the user does not have a bank account yet
-                # we create a default one automatically
-                konto = Konto(
-                    besitzer=self.user.pk
-                )
-                konto.objects.save()
-
-            # Display all the bank accounts the user has
-            # As well as their balance and account-id
-            print(f"\nWillkommen {self.user.name}!")
-            print("Ihre Konten:")
-            self.show_konten(self.user.konten)
-
-            print(
-                "Möchten sie ein neues Konto eröffnen, "
-                "oder ein bestehendes Konto auswählen?"
-            )
-            if self.yes_or_no_question("Neues Konto (J) / Bestehendes Konto (N): "):
-                konto = self.create_bank_account()
-
-                print("Wollen sie ihr neues Konto direkt auswählen?")
-
-                if self.yes_or_no_question():
-                    self.konto = konto
-
-                else:
-                    print("Ihre Konten:")
-                    self.show_konten(self.user.konten)
-
-                    while not (konto := self.choose_bank_account()):
-                        continue
-
-            else:
-                while not (konto := self.choose_bank_account()):
-                    continue
-
-            self.konto = konto
-            print(f"Konto: '{self.konto.kontonummer}', wurde gewählt.")
-
-            while True:
-                self.perform_actions()
-                print("Möchten sie eine weitere Aktion ausführen?")
-                print("Andernfalls wird das Programm beendet.")
-
-                if self.yes_or_no_question(text="Fortfahren (J) / Abbrechen (N): "):
-                    print(
-                        "Wollen sie mit dem aktuellen Kunde und Konto fortfahren?"
-                    )
-                    if self.yes_or_no_question():
-                        continue
-
-                    else:
-                        return self.mainloop()
-
-                else:
-                    return
-
-    def show_konten(self, konten: list) -> None:
-        if not konten:
-            print("Es sind keine Konten verfügbar.")
-            return
-
-        for i, konto in enumerate(konten):
-            print(f"{i + 1}. {konto.kontonummer}:")
-            print(
-                f"Kontostand: {self._format_balance(konto.kontostand)}\n"
-            )
-
-    def choose_bank_account(self) -> Optional[Konto]:
-        # Now let the user choose their account,
-        # either by account-id or the numeric index of the listing
-        selection = input(
-            "Bitte wählen sie ein Konto aus der Liste: "
+    def pick_action(self,
+                    actions: List[Tuple[str, Callable]]
+                    ) -> Callable[[], Optional[Any]]:
+        print(
+            "Bitte wählen sie eine Aktion aus dem unteren Menü aus, "
+            "um fortzufahren.\n"
         )
 
-        try:
-            # Check if the user provided a numeric index
-            selection = int(selection)
+        while True:
+            for index, (text, _) in enumerate(actions):
+                print(f"{index + 1}. {text}")
 
-            if selection <= 0:
-                raise IndexError
+            try:
+                selected_action = int(input())
 
-            return self.user.konten[selection - 1]
+                if selected_action <= 0:
+                    raise ValueError
 
-        except ValueError:
-            # the user provided an account-id
-            for konto in self.user.konten:
-                if getattr(konto, "kontonummer") == selection:
-                    return konto
+                action = actions[selected_action - 1][-1]
 
-        except IndexError:
-            # An integer was provided but it didnt fit an index
-            # in the users bank account list
-            print(f"Kein verfügbares Konto an der Stelle {selection}.")
+            except ValueError:
+                print(
+                    "Die Eingabe muss eine positive, "
+                    "ganze Zahl aus dem oben angezeigten Menü sein."
+                )
+                print("Bitte erneut eingeben!")
+                continue
+
+            except IndexError:
+                print("Keine gültige Aktion ausgewählt.")
+                print("Bitte erneut eingeben!")
+                continue
+
+            else:
+                return action
+
+    def user_actions(self) -> None:
+        actions = [
+            ("Login", self.user_login),
+            ("Neuen Nutzer erstellen", self.user_create),
+            ("Bestehenden Nutzer löschen", self.user_delete)
+        ]
+
+        print("Sie sind aktuell nicht eingeloggt.")
+        action = self.pick_action(actions)
+
+        self.user = action()
+        return
+
+    def user_login(self) -> Kunde:
+        while True:
+            print("=====LOGIN=====")
+            username = input("Username: ")
+            password = getpass("Passwort: ")
+            user = Kunde.objects.login_user(username, password)
+            if user:
+                return user
+
+            print("Falsches Passwort oder Username.")
+            print("Möchten sie stattdessen einen neuen Account erstellen?")
+
+            if self.yes_or_no_question():
+                return self.user_create()
+
+            else:
+                continue
+
+    def user_delete(self) -> None:
+        user = self.user_login()
+        self.do_delete_user(user)
+
+        print("Löschen erfolgreich.")
 
         return None
 
-    def create_bank_account(self) -> Konto:
-        konto = Konto(
-            besitzer=self.user.pk
-        )
-        konto.objects.save()
-
-        print(f"Neues Konto wurde erstellt, ihre Kontonummer ist: '{konto.kontonummer}'")
-
-        return konto
-
-    def create_account(self) -> Kunde:
+    def user_create(self) -> Kunde:
         kundendaten= {}  # noqa dict literal
 
         while True:
@@ -215,7 +231,7 @@ class TUI(UI):
             try:
                 kunde = Kunde(**kundendaten)
                 kunde.objects.save()
-                break
+                return kunde
 
             except ObjectAlreadyExists:
                 print("Ein Nutzer mit dem gewählten Nutzername existiert bereits.")
@@ -226,7 +242,7 @@ class TUI(UI):
                     continue
 
                 else:
-                    return self.login_user()
+                    return self.user_login()
 
             except AssertionError as exc:
                 try:
@@ -239,24 +255,103 @@ class TUI(UI):
                 print("Bitte geben sie ihre Daten erneut ein.\n")
                 kundendaten = {}
 
-        return kunde  # noqa ref before assignment
+    def konto_selection_actions(self):
+        actions = [
+            ("Bestehendes Konto auswählen", self.konto_select),
+            ("Neues Konto eröffnen", self.konto_create),
+            ("Bestehendes Konto löschen", self.konto_delete)
+        ]
 
-    def login_user(self) -> Kunde:
+        print("Aktuell haben sie kein Konto ausgewählt.")
+        action = self.pick_action(actions)
+
+        self.konto = action()
+        return
+
+    def show_konten(self, konten: List[Konto]) -> None:
+        if not konten:
+            print("Es sind keine Konten verfügbar.")
+            return
+
+        for i, konto in enumerate(konten):
+            print(f"{i + 1}. {konto.kontonummer}:")
+            print(
+                f"Kontostand: {self._format_balance(konto.kontostand)}\n"
+            )
+
+    def konto_delete(self) -> None:
+        konten = self.user.konten
+
+        if len(konten) == 1:
+            print("Sie müssen maximal ein Konto haben.")
+            print(
+                "Um alle ihre Konten zu löschen, loggen sie sich aus, "
+                "und löschen sie ihren Kundenaccount."
+            )
+            return None
+
+        self.show_konten(konten)
+        konto = self.choose_bank_account(konten)
+        self.do_delete_bank_account(konto)
+
+        return None
+
+    def konto_create(self) -> None:
+        konto = Konto(
+            besitzer=self.user.pk
+        )
+        konto.objects.save()
+
+        print(
+            "Neues Konto wurde erstellt, "
+            f"ihre Kontonummer ist: '{konto.kontonummer}'."
+        )
+
+        return None
+
+    def konto_select(self) -> Konto:
+        konten = self.user.konten
+
+        self.show_konten(konten)
+        konto = self.choose_bank_account(konten)
+
+        return konto
+
+    def choose_bank_account(self, konten: List[Konto]) -> Optional[Konto]:
+        if not konten:
+            return None
+
+        # Now let the user choose their account,
+        # either by account-id or the numeric index of the listing
+
         while True:
-            print("=====LOGIN=====")
-            username = input("Username: ")
-            password = getpass("Passwort: ")
-            user = Kunde.objects.login_user(username, password)
-            if user:
-                return user
-            print("Falsches Passwort oder Username.")
-            print("Möchten sie stattdessen einen neuen Account erstellen?")
+            selection = input(
+                "Bitte wählen sie ein Konto aus der Liste: "
+            )
 
-            if self.yes_or_no_question():
-                return self.create_account()
+            try:
+                # Check if the user provided a numeric index
+                selection = int(selection)
+
+                if selection <= 0:
+                    raise IndexError
+
+            except ValueError:
+                # the user provided an account-id
+                for konto in konten:
+                    if getattr(konto, "kontonummer") == selection:
+                        return konto
+
+                continue
+
+            except IndexError:
+                # An integer was provided but it didnt fit an index
+                # in the users bank account list
+                print(f"Kein verfügbares Konto an der Stelle {selection}.")
+                continue
 
             else:
-                continue
+                return konten[selection - 1]
 
     def perform_actions(self):
         # Select action
@@ -268,27 +363,14 @@ class TUI(UI):
             self._show_balance()
 
     def select_action(self) -> Callable[[], None]:
-        actions = IterableKeyDictionary({
-            ("1", "einzahlen"): self._do_deposit,
-            ("2", "auszahlen"): self._do_withdraw,
-            ("3", "überweisung"): self._do_transfer,
-            ("4", "kontostand"): self._show_balance,
-        })
+        actions = [
+            ("Einzahlung", self._do_deposit),
+            ("Auszahlung", self._do_withdraw),
+            ("Überweisung tätigen", self._do_transfer),
+            ("Kontostand anzeigen", self._show_balance)
+        ]
 
-        while True:
-            print("Was wollen sie tun?")
-            [
-                print(
-                    f"{num}. {action.capitalize()}"
-                ) for num, action in actions.keys()
-            ]
-            action = input()
-            try:
-                action_to_execute = actions[action.lower()]
-            except KeyError:
-                print("Ungültige Option, bitte erneut eingeben.")
-            else:
-                return action_to_execute
+        return self.pick_action(actions)
 
     def _do_deposit(self) -> None:
         while True:

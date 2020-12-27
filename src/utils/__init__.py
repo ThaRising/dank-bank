@@ -19,8 +19,6 @@ def find_index_by_value_at_key(items: List[dict],
     return None
 
 
-# TODO this should be moved to drizm_commons
-
 class IterableKeyDictionary(dict):
     __slots__ = ["__weakref__"]
     __doc__ = ""

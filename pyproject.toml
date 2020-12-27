@@ -10,6 +10,7 @@ sqlalchemy = "^1.3.19"
 python-dateutil = "^2.8.1"
 drizm-commons = {extras = ["sqla"], version = "^0.3.0"}
 bcrypt = "^3.2.0"
+colorama = "^0.4.4"
 
 [tool.poetry.dev-dependencies]
 pytest = "^6.1.2"

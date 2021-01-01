@@ -13,15 +13,13 @@ class Storage:
                 dialect="sqlite",
                 host="data.sqlite3",
             ),
-            "json": lambda: JsonAdapter()
+            "json": lambda: JsonAdapter(),
         }
 
         from .managers.sql import SqlManager
         from .managers.json import JsonManager
-        MANAGER_TYPES = {
-            "sql": SqlManager,
-            "json": JsonManager
-        }
+
+        MANAGER_TYPES = {"sql": SqlManager, "json": JsonManager}
 
         # if no storage_type has explicitly been passed, attempt to return
         # the saved default implementation

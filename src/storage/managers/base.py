@@ -27,16 +27,12 @@ class BaseManagerInterface(ABC):
         """ Get the name of the primary key column """
         primary_keys = SQLAIntrospector(self.klass).primary_keys()
         if len(primary_keys) > 1:
-            raise TypeError(
-                "Composite-Primary Keys are not supported by this Manager"
-            )
+            raise TypeError("Composite-Primary Keys are not supported by this Manager")
         return primary_keys[0]
 
     def _get_identifier(self):
         """ Get the value of the primary key column """
-        return getattr(
-            self.klass, self._get_identifier_column_name()
-        )
+        return getattr(self.klass, self._get_identifier_column_name())
 
     @abstractmethod
     def save(self):
@@ -120,19 +116,14 @@ class AbstractManager:
         Manager = type(
             cls.__name__,
             (storage.manager,),
-            {
-                attr: getattr(
-                    cls, attr
-                ) for attr in dir(cls) if not is_dunder(attr)
-            }
+            {attr: getattr(cls, attr) for attr in dir(cls) if not is_dunder(attr)},
         )
-        Manager = decorate_class_object_methods(
-            Manager, resolve_super_auto_resolution
-        )
+        Manager = decorate_class_object_methods(Manager, resolve_super_auto_resolution)
 
         return Manager(klass, db, storage_name)
 
 
 class BaseManager(AbstractManager):
     """ Will return the default manager for the current storage type """
+
     pass

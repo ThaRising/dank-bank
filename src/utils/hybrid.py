@@ -1,5 +1,6 @@
 class hybrid_property:
     """ Mostly ripped from the SQLAlchemy sourcecode (MIT-License) """
+
     def __init__(self, fget=None, fset=None, fdel=None, fcget=None):
         self.fget = fget
         self.fset = fset
@@ -9,11 +10,11 @@ class hybrid_property:
     def __get__(self, instance, owner):
         if instance is None:
             if self.fcget is None and self.fget is None:
-                raise AttributeError('unreadable attribute')
+                raise AttributeError("unreadable attribute")
             return (self.fcget or self.fget)(owner)
         else:
             if self.fget is None:
-                raise AttributeError('unreadable attribute')
+                raise AttributeError("unreadable attribute")
             return self.fget(instance)
 
     def __set__(self, instance, value):
@@ -59,5 +60,5 @@ class hybrid_property:
             fget=self.fget if fget is None else fget,
             fset=self.fset if fset is None else fset,
             fdel=self.fdel if fdel is None else fdel,
-            fcget=self.fcget if fcget is None else fcget
+            fcget=self.fcget if fcget is None else fcget,
         )

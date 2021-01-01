@@ -38,7 +38,7 @@ class JsonAdapter:
                 "file": filename,
                 "pk": table.primary_keys(),
                 "uq": table.unique_keys(),
-                "fk": table.foreign_keys()
+                "fk": table.foreign_keys(),
             }
             self.schema[table.tablename] = data
 

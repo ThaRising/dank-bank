@@ -12,7 +12,6 @@ StorageT = TypeVar("StorageT", JsonAdapter, Database)
 
 AnyScalar = typing.Union[int, float, str]
 Identifier = typing.Union[int, str]
-StorageType = typing.Literal['sql', 'json']
+StorageType = typing.Literal["sql", "json"]
 
-class DatabaseObject(ManagerMixin, Base):
-    ...
+class DatabaseObject(ManagerMixin, Base): ...

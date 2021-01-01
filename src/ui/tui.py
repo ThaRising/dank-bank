@@ -15,10 +15,9 @@ from .base import UI
 
 
 class TUI(UI):
-    yes_no_answer_choices: ClassVar[dict] = IterableKeyDictionary({
-        ("J", "j", "Y", "y"): True,
-        ("N", "n"): False
-    })
+    yes_no_answer_choices: ClassVar[dict] = IterableKeyDictionary(
+        {("J", "j", "Y", "y"): True, ("N", "n"): False}
+    )
 
     def __init__(self, storage: Optional[Storage] = None) -> None:
         super().__init__(storage)
@@ -27,20 +26,16 @@ class TUI(UI):
             # Let the user select their storage type
             while True:
                 print(Fore.LIGHTGREEN_EX + "Bitte wählen sie ihren Speichertypen.")
-                storage_type = input(
-                    "JSON oder SQL? "
-                )
+                storage_type = input("JSON oder SQL? ")
 
                 try:
-                    storage = self.storage_types[
-                        storage_type.lower()
-                    ]()
+                    storage = self.storage_types[storage_type.lower()]()
                     self.storage = storage
                 except KeyError:
                     print(Fore.LIGHTRED_EX + "\nÜngültige Eingabe!")
                     print(
-                        Fore.LIGHTRED_EX +
-                        f"Kein verfügbarer Speichertyp: '{storage_type}'.\n"
+                        Fore.LIGHTRED_EX
+                        + f"Kein verfügbarer Speichertyp: '{storage_type}'.\n"
                     )
                 else:
                     break
@@ -69,25 +64,22 @@ class TUI(UI):
             # we create a default one automatically
             if not self.user.konten:
                 print(
-                    Fore.LIGHTRED_EX +
-                    "Es scheint so als haben sie bisher noch kein Konto bei uns."
+                    Fore.LIGHTRED_EX
+                    + "Es scheint so als haben sie bisher noch kein Konto bei uns."
                 )
                 print(
-                    Fore.LIGHTGREEN_EX +
-                    "Wir haben ihnen automatisch eines eröffnet!\n"
+                    Fore.LIGHTGREEN_EX + "Wir haben ihnen automatisch eines eröffnet!\n"
                 )
 
-                konto = Konto(
-                    besitzer=self.user.pk
-                )
+                konto = Konto(besitzer=self.user.pk)
                 konto.objects.save()
 
             while not self.konto:
                 self.konto_selection_actions()
 
             print(
-                Fore.LIGHTGREEN_EX +
-                f"\nKonto: '{self.konto.kontonummer}', wurde gewählt."
+                Fore.LIGHTGREEN_EX
+                + f"\nKonto: '{self.konto.kontonummer}', wurde gewählt."
             )
 
             while True:
@@ -131,12 +123,12 @@ class TUI(UI):
                 continue
 
     # noinspection PyMethodMayBeStatic
-    def pick_action(self,
-                    actions: List[Tuple[str, Callable]]
-                    ) -> Callable[[], Optional[Any]]:
+    def pick_action(
+        self, actions: List[Tuple[str, Callable]]
+    ) -> Callable[[], Optional[Any]]:
         print(
-            Fore.LIGHTGREEN_EX +
-            "Bitte wählen sie eine Aktion aus dem unteren Menü aus, "
+            Fore.LIGHTGREEN_EX
+            + "Bitte wählen sie eine Aktion aus dem unteren Menü aus, "
             "um fortzufahren.\n"
         )
 
@@ -153,10 +145,10 @@ class TUI(UI):
                 action = actions[selected_action - 1][-1]
 
             except ValueError:
-                print(Fore.LIGHTRED_EX +
-                      "Die Eingabe muss eine positive, "
-                      "ganze Zahl aus dem oben angezeigten Menü sein.\n"
-                      )
+                print(
+                    Fore.LIGHTRED_EX + "Die Eingabe muss eine positive, "
+                    "ganze Zahl aus dem oben angezeigten Menü sein.\n"
+                )
                 print(Fore.LIGHTRED_EX + "Bitte erneut eingeben!")
                 continue
 
@@ -172,7 +164,7 @@ class TUI(UI):
         actions = [
             ("Login", self.user_login),
             ("Neuen Nutzer erstellen", self.user_create),
-            ("Bestehenden Nutzer löschen", self.user_delete)
+            ("Bestehenden Nutzer löschen", self.user_delete),
         ]
 
         print(Fore.LIGHTRED_EX + "Sie sind aktuell nicht eingeloggt.\n")
@@ -192,8 +184,8 @@ class TUI(UI):
 
             print(Fore.LIGHTRED_EX + "Falsches Passwort oder Username.")
             print(
-                Fore.LIGHTGREEN_EX +
-                "Möchten sie stattdessen einen neuen Account erstellen?"
+                Fore.LIGHTGREEN_EX
+                + "Möchten sie stattdessen einen neuen Account erstellen?"
             )
 
             if self.yes_or_no_question():
@@ -227,11 +219,7 @@ class TUI(UI):
 
                     try:
                         d, m, y = [int(i) for i in geb_date.split()]
-                        kundendaten["geb_date"] = date(
-                            day=d,
-                            month=m,
-                            year=y
-                        )
+                        kundendaten["geb_date"] = date(day=d, month=m, year=y)
                         break
 
                     except ValueError:
@@ -240,9 +228,7 @@ class TUI(UI):
                         continue
 
             kundendaten["username"] = input("Username: ")
-            kundendaten["password"] = Kunde.objects.hash_password(
-                getpass("Passwort: ")
-            )
+            kundendaten["password"] = Kunde.objects.hash_password(getpass("Passwort: "))
 
             try:
                 kunde = Kunde(**kundendaten)
@@ -251,8 +237,8 @@ class TUI(UI):
 
             except ObjectAlreadyExists:
                 print(
-                    Fore.LIGHTRED_EX +
-                    "\nEin Nutzer mit dem gewählten Nutzername existiert bereits.\n"
+                    Fore.LIGHTRED_EX
+                    + "\nEin Nutzer mit dem gewählten Nutzername existiert bereits.\n"
                 )
                 print("Wenn sie den Nutzernamen anpassen wollen, wählen sie jetzt 'J'.")
                 print("Andernfalls können sie sich anmelden, wählen sie dafür 'N'.")
@@ -269,8 +255,7 @@ class TUI(UI):
 
                 except AttributeError or IndexError:
                     message = (
-                            Fore.LIGHTRED_EX +
-                            "Einer der eingegebenen Werte ist ungültig."
+                        Fore.LIGHTRED_EX + "Einer der eingegebenen Werte ist ungültig."
                     )
 
                 print(message)
@@ -281,7 +266,7 @@ class TUI(UI):
         actions = [
             ("Bestehendes Konto auswählen", self.konto_select),
             ("Neues Konto eröffnen", self.konto_create),
-            ("Bestehendes Konto löschen", self.konto_delete)
+            ("Bestehendes Konto löschen", self.konto_delete),
         ]
 
         print(Fore.LIGHTRED_EX + "Aktuell haben Sie kein Konto ausgewählt.\n")
@@ -297,19 +282,18 @@ class TUI(UI):
 
         for i, konto in enumerate(konten):
             print(Fore.LIGHTGREEN_EX + f"\n{i + 1}. {konto.kontonummer}:")
-            print(
-                f"Kontostand: {self._format_balance(konto.kontostand)}\n"
-            )
+            print(f"Kontostand: {self._format_balance(konto.kontostand)}\n")
 
     def konto_delete(self) -> None:
         konten = self.user.konten
 
         if len(konten) == 1:
             print(Fore.LIGHTRED_EX + "Sie müssen maximal ein Konto haben.")
-            print(Fore.LIGHTRED_EX +
-                  "Um alle ihre Konten zu löschen, loggen sie sich aus, "
-                  "und löschen sie ihren Kundenaccount.\n"
-                  )
+            print(
+                Fore.LIGHTRED_EX
+                + "Um alle ihre Konten zu löschen, loggen sie sich aus, "
+                "und löschen sie ihren Kundenaccount.\n"
+            )
             return None
 
         self.show_konten(konten)
@@ -319,15 +303,13 @@ class TUI(UI):
         return None
 
     def konto_create(self) -> None:
-        konto = Konto(
-            besitzer=self.user.pk
-        )
+        konto = Konto(besitzer=self.user.pk)
         konto.objects.save()
 
-        print(Fore.LIGHTGREEN_EX +
-              "Neues Konto wurde erstellt, "
-              f"ihre Kontonummer ist: '{konto.kontonummer}'."
-              )
+        print(
+            Fore.LIGHTGREEN_EX + "Neues Konto wurde erstellt, "
+            f"ihre Kontonummer ist: '{konto.kontonummer}'."
+        )
 
         return None
 
@@ -347,9 +329,7 @@ class TUI(UI):
         # either by account-id or the numeric index of the listing
 
         while True:
-            selection = input(
-                "Bitte wählen sie ein Konto aus der Liste: "
-            )
+            selection = input("Bitte wählen sie ein Konto aus der Liste: ")
 
             try:
                 # Check if the user provided a numeric index
@@ -372,8 +352,8 @@ class TUI(UI):
                 # An integer was provided but it didnt fit an index
                 # in the users bank account list
                 print(
-                    Fore.LIGHTRED_EX +
-                    f"Kein verfügbares Konto an der Stelle {selection}."
+                    Fore.LIGHTRED_EX
+                    + f"Kein verfügbares Konto an der Stelle {selection}."
                 )
                 continue
 
@@ -391,7 +371,7 @@ class TUI(UI):
             ("Einzahlung\n", self._do_deposit),
             ("Auszahlung\n", self._do_withdraw),
             ("Überweisung tätigen\n", self._do_transfer),
-            ("Kontostand anzeigen", self._show_balance)
+            ("Kontostand anzeigen", self._show_balance),
         ]
 
         return self.pick_action(actions)
@@ -421,11 +401,12 @@ class TUI(UI):
                 auszahlung = self._format_deposit(auszahlung)
 
                 if auszahlung > self.konto.kontostand:
-                    print(Fore.LIGHTRED_EX +
-                          "Sie können nicht mehr als den verfügbaren Saldo von "
-                          f"{self.show_balance(self.konto)} "
-                          "abheben."
-                          )
+                    print(
+                        Fore.LIGHTRED_EX
+                        + "Sie können nicht mehr als den verfügbaren Saldo von "
+                        f"{self.show_balance(self.konto)} "
+                        "abheben."
+                    )
                     continue
 
                 break
@@ -438,26 +419,26 @@ class TUI(UI):
         self.do_withdraw(auszahlung)  # noqa ref before assignment
 
     def _do_transfer(self) -> None:
-        print(Fore.LIGHTGREEN_EX +
-              "Sie können entweder auf eines ihrer eigenen Konten,\n"
-              "oder auf das Konto einer anderen Person Geld überweisen.\n"
-              )
+        print(
+            Fore.LIGHTGREEN_EX + "Sie können entweder auf eines ihrer eigenen Konten,\n"
+            "oder auf das Konto einer anderen Person Geld überweisen.\n"
+        )
         print(Fore.LIGHTBLUE_EX + "Eigenen Konten, welche als Ziel gelten können:")
-        self.show_konten([
-            k for k in self.user.konten if not k.kontonummer == self.konto.kontonummer
-        ])
+        self.show_konten(
+            [k for k in self.user.konten if not k.kontonummer == self.konto.kontonummer]
+        )
 
         while True:
             print(
-                Fore.LIGHTGREEN_EX +
-                "Bitte wählen sie ein Konto zu dem die Geld überweisen wollen.\n"
+                Fore.LIGHTGREEN_EX
+                + "Bitte wählen sie ein Konto zu dem die Geld überweisen wollen.\n"
             )
             kontonummer = input("Kontonummer: ")
 
             if kontonummer == self.konto.kontonummer:
                 print(
-                    Fore.LIGHTRED_EX +
-                    "Sie können keine Überweisung auf das aktuell gewählte Konto machen."
+                    Fore.LIGHTRED_EX
+                    + "Sie können keine Überweisung auf das aktuell gewählte Konto machen."
                 )
                 print(Fore.LIGHTRED_EX + "Bitte erneut eingeben!")
                 continue
@@ -467,12 +448,12 @@ class TUI(UI):
 
             except ObjectNotFound:
                 print(
-                    Fore.LIGHTRED_EX +
-                    "Kein Konto mit der angegebenen Kontonummer gefunden\n"
+                    Fore.LIGHTRED_EX
+                    + "Kein Konto mit der angegebenen Kontonummer gefunden\n"
                 )
                 print(
-                    Fore.LIGHTGREEN_EX +
-                    "Möchten sie den Prozess abbrechen oder ein anderes Konto wählen?"
+                    Fore.LIGHTGREEN_EX
+                    + "Möchten sie den Prozess abbrechen oder ein anderes Konto wählen?"
                 )
 
                 if self.yes_or_no_question(text="Abbrechen (J) / Weitermachen (N): "):
@@ -485,8 +466,7 @@ class TUI(UI):
                 break
 
         print(
-            Fore.LIGHTGREEN_EX +
-            f"Überweisung von '{self.konto.kontonummer}' -> "
+            Fore.LIGHTGREEN_EX + f"Überweisung von '{self.konto.kontonummer}' -> "
             f"'{konto.kontonummer}'\n"  # noqa
         )
         print(Fore.LIGHTGREEN_EX + "Welche Summe wollen sie überweisen?")
@@ -497,11 +477,12 @@ class TUI(UI):
                 summe = self._format_deposit(summe)
 
                 if summe > self.konto.kontostand:
-                    print(Fore.LIGHTRED_EX +
-                          "Sie können nicht mehr als den verfügbaren Saldo von "
-                          f"{self.show_balance(self.konto)} "
-                          "abheben."
-                          )
+                    print(
+                        Fore.LIGHTRED_EX
+                        + "Sie können nicht mehr als den verfügbaren Saldo von "
+                        f"{self.show_balance(self.konto)} "
+                        "abheben."
+                    )
                     continue
 
                 break

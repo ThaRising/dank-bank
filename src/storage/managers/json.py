@@ -34,32 +34,21 @@ class JsonManager(BaseManagerInterface):
     # noinspection PyMethodMayBeStatic
     def _save(self, current_content, fout) -> None:
         """ Writes the provided content into the provided file-object """
-        json.dump(
-            current_content,
-            fout,
-            indent=4,
-            cls=SqlaDeclarativeEncoder
-        )
+        json.dump(current_content, fout, indent=4, cls=SqlaDeclarativeEncoder)
 
     def _check_unique(self, current_content: List[dict]) -> None:
         pk_column = self._get_identifier_column_name()
-        unique_keys = [
-            k for k in self.inspect.unique_keys() if not k == pk_column
-        ]
+        unique_keys = [k for k in self.inspect.unique_keys() if not k == pk_column]
 
         instance_unique_values = {
-            key: getattr(
-                self.klass, key
-            ) for key in unique_keys if key != self._get_identifier_column_name()
+            key: getattr(self.klass, key)
+            for key in unique_keys
+            if key != self._get_identifier_column_name()
         }
-        instance_primary_key = {
-            pk_column: self._get_identifier()
-        }
+        instance_primary_key = {pk_column: self._get_identifier()}
 
         for entity in current_content:
-            entity_unique_values = [
-                entity.get(key) for key in unique_keys
-            ]
+            entity_unique_values = [entity.get(key) for key in unique_keys]
             entity_primary_key = entity.get(pk_column)
 
             for (column_name, instance_value), entity_value in zip(
@@ -70,7 +59,7 @@ class JsonManager(BaseManagerInterface):
                 # If the value does exist on an instance with a different primary key however,
                 # that means there is actually a uniqueness violation occurring.
                 if instance_value == entity_value and (
-                        instance_primary_key != entity_primary_key
+                    instance_primary_key != entity_primary_key
                 ):
                     raise ObjectAlreadyExists(
                         f"Value '{instance_value}' for Column "
@@ -87,7 +76,7 @@ class JsonManager(BaseManagerInterface):
             index = find_index_by_value_at_key(
                 current_content,
                 self._get_identifier_column_name(),
-                self._get_identifier()
+                self._get_identifier(),
             )
             print(index)
 
@@ -119,7 +108,7 @@ class JsonManager(BaseManagerInterface):
             index = find_index_by_value_at_key(
                 current_content,
                 self._get_identifier_column_name(),
-                self._get_identifier()
+                self._get_identifier(),
             )
             current_content.pop(index)
             self._save(current_content, fout)
@@ -142,9 +131,7 @@ class JsonManager(BaseManagerInterface):
             self._not_found(identifier)
 
         index = find_index_by_value_at_key(
-            current_content,
-            self._get_identifier_column_name(),
-            identifier
+            current_content, self._get_identifier_column_name(), identifier
         )
         if not index:
             self._not_found(identifier)
@@ -164,19 +151,13 @@ class JsonManager(BaseManagerInterface):
         results = []
         for entity in current_content:
             results.append(
-                all([
-                    entity.get(
-                        column
-                    ) == value for column, value in kwargs.items()
-                ])
+                all([entity.get(column) == value for column, value in kwargs.items()])
             )
 
         entities = []
         for index, matches_filter_params in enumerate(results):
             if matches_filter_params:
-                entities.append(
-                    self._construct_instance(current_content[index])
-                )
+                entities.append(self._construct_instance(current_content[index]))
 
         return entities
 
@@ -186,8 +167,4 @@ class JsonManager(BaseManagerInterface):
         if not current_content:
             return []
 
-        return [
-            self._construct_instance(
-                entity
-            ) for entity in current_content
-        ]
+        return [self._construct_instance(entity) for entity in current_content]

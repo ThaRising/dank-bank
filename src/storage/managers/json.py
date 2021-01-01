@@ -1,4 +1,3 @@
-import datetime
 import json
 from typing import List, NoReturn
 
@@ -35,18 +34,6 @@ class JsonManager(BaseManagerInterface):
     # noinspection PyMethodMayBeStatic
     def _save(self, current_content, fout) -> None:
         """ Writes the provided content into the provided file-object """
-        # TODO all of this is just a band-aid fix
-        for index, elem in enumerate(current_content):
-            if type(elem) != dict:
-                obj = {
-                    attr: getattr(
-                        elem, attr
-                    ) for attr in elem.__dict__ if not attr.startswith("_")
-                }
-                for k, v in obj.items():
-                    if type(v) == datetime.date or type(v) == datetime.datetime:
-                        obj[k] = v.isoformat()
-                current_content[index] = obj
         json.dump(
             current_content,
             fout,

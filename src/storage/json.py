@@ -2,14 +2,14 @@ import json
 from configparser import ConfigParser
 
 from drizm_commons.sqla import Base, SQLAIntrospector
-from drizm_commons.utils import get_application_root, Path
+from drizm_commons.utils.pathing import get_absolute_root_path, Path
 
 
 class JsonAdapter:
     def __init__(self) -> None:
         self.schema = ConfigParser()
 
-        self.path = Path(get_application_root()) / ".json_db"
+        self.path = Path(get_absolute_root_path()) / ".json_db"
         self.table_map = Path(self.path) / "tbl_map.ini"
 
     def _load(self):

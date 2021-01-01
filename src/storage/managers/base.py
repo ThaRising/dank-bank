@@ -2,7 +2,9 @@ from abc import ABC, abstractmethod
 from inspect import isclass
 
 from drizm_commons.inspect import SQLAIntrospector
-from drizm_commons.utils import is_dunder
+from drizm_commons.testing.truthiness import is_dunder
+from drizm_commons.utils import decorate_class_object_methods
+from drizm_commons.utils.decorators import resolve_super_auto_resolution
 
 
 class BaseManagerInterface(ABC):
@@ -123,6 +125,9 @@ class AbstractManager:
                     cls, attr
                 ) for attr in dir(cls) if not is_dunder(attr)
             }
+        )
+        Manager = decorate_class_object_methods(
+            Manager, resolve_super_auto_resolution
         )
 
         return Manager(klass, db, storage_name)

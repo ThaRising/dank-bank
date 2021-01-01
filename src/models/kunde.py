@@ -54,7 +54,7 @@ class KundenManager(AbstractManager):
         for konto in self.klass.konten:
             konto.objects.delete()
 
-        super(type(self), self).delete()
+        super().delete()
 
 
 class Kunde(ManagerMixin, Base):
@@ -86,7 +86,7 @@ class Kunde(ManagerMixin, Base):
         return username
 
     @validates("password")
-    def validate_username(self, _, password) -> str:
+    def validate_password(self, _, password) -> str:
         assert len(password) >= 3, "Passwort muss mind. 3 Zeichen lang sein."
 
         assert not password.isnumeric(), ("Das Passwort muss sowohl Buchstaben, "

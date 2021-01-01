@@ -6,7 +6,7 @@ from src import models
 
 
 class UI(ABC):
-    storage_types: ClassVar[dict] = {
+    storage_types: ClassVar = {
         "sql": lambda: Storage("sql"),
         "json": lambda: Storage("json")
     }

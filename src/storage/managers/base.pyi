@@ -1,5 +1,5 @@
 from abc import ABC
-from typing import Generic, Dict, Any, List, Optional, TypeVar, ClassVar
+from typing import Generic, List, Optional, TypeVar, ClassVar
 
 from sqlalchemy.ext.declarative import DeclarativeMeta
 

@@ -42,7 +42,7 @@ class TUI(UI):
             self.storage = storage
 
         self.success(
-            f"{self.storage.manager.db_type.upper()} Datenspeicher wird genutzt.\n"
+            f"\n{self.storage.manager.db_type.upper()} Datenspeicher wird genutzt.\n"
         )
         self.storage.db.create()
         colorama.init(autoreset=True)
@@ -313,7 +313,7 @@ class TUI(UI):
         konto.objects.save()
 
         self.success("Ihr neues Konto wurde erfolgreich erstellt!")
-        print(f"ihre Kontonummer ist: '{konto.kontonummer}'.")
+        print(f"Ihre Kontonummer ist: '{konto.kontonummer}'.\n")
 
         return None
 

@@ -45,11 +45,16 @@ class TUI(UI):
             f"\n{self.storage.manager.db_type.upper()} Datenspeicher wird genutzt.\n"
         )
         self.storage.db.create()
+
+        # Initialize the terminal colors
         colorama.init(autoreset=True)
+
+        # Run this whenever the program shuts down
         atexit.register(self.cleanup)
 
     # noinspection PyMethodMayBeStatic
     def cleanup(self) -> None:
+        """ Reset the terminal back to normal. """
         colorama.deinit()
 
     @staticmethod

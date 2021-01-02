@@ -59,6 +59,7 @@ class UI(ABC):
 
     @abstractmethod
     def mainloop(self):
+        """ The primary entrypoint into all UI based classes. """
         pass
 
     def do_deposit(

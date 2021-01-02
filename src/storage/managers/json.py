@@ -78,7 +78,6 @@ class JsonManager(BaseManagerInterface):
                 self._get_identifier_column_name(),
                 self._get_identifier(),
             )
-            print(index)
 
             # read the file -> add some content -> overwrite the file
             try:

@@ -1,8 +1,10 @@
-from abc import ABC, abstractmethod, ABCMeta
+from abc import ABC, abstractmethod
 from inspect import isclass
 
-from drizm_commons.utils import is_dunder
 from drizm_commons.inspect import SQLAIntrospector
+from drizm_commons.testing.truthiness import is_dunder
+from drizm_commons.utils import decorate_class_object_methods
+from drizm_commons.utils.decorators import resolve_super_auto_resolution
 
 
 class BaseManagerInterface(ABC):
@@ -11,8 +13,9 @@ class BaseManagerInterface(ABC):
         self.db = storage
 
         # This value gives subclasses a way to execute
-        # different code based on the type of storage we are using
-        self.db_type = store_type
+        # different code based on the type of storage we are using.
+        # Manager classes can also manually specify this as a class attribute.
+        self.db_type = store_type or self.__class__.db_type
 
     def _is_static(self) -> bool:
         """ Check whether this manager is serving an instance or a class """
@@ -21,57 +24,60 @@ class BaseManagerInterface(ABC):
         return False
 
     def _get_identifier_column_name(self):
+        """ Get the name of the primary key column """
         primary_keys = SQLAIntrospector(self.klass).primary_keys()
         if len(primary_keys) > 1:
-            raise TypeError(
-                "Composite-Primary Keys are not supported by this Manager"
-            )
+            raise TypeError("Composite-Primary Keys are not supported by this Manager")
         return primary_keys[0]
 
     def _get_identifier(self):
-        return getattr(
-            self.klass, self._get_identifier_column_name()
-        )
+        """ Get the value of the primary key column """
+        return getattr(self.klass, self._get_identifier_column_name())
 
     @abstractmethod
     def save(self):
-        pass
+        """
+        Saves the current object to the database.
 
-    @abstractmethod
-    def update(self, data):
+        This can be used both to save a new object to the database
+        and to update an existing object.
+        """
         pass
 
     @abstractmethod
     def delete(self):
+        """
+        Remove the current object from the database.
+        """
         pass
 
     @abstractmethod
-    def _read(self, *args, **kwargs):
+    def get(self, identifier):
         """
-        Will take either one positional argument or n-keyword arguments.
+        Retrieve an instance by its primary key.
 
-        When a positional argument is provided it is assumed to be
-        the primary key of the object.
-        If this lookup fails this method will throw an error.
+        If no matching object is found,
+        a src.storage.exc.ObjectNotFound exception is raised.
+        """
+        pass
 
-        When keyword arguments are provided,
-        filtering will occur based on the provided parameters and their values.
+    @abstractmethod
+    def filter(self, **kwargs):
+        """
+        Do exact and case sensitive filtering,
+        based on provided kwargs.
+
         This will never throw an error and instead simply return an empty list,
         if no matching entities could be found.
         """
         pass
 
-    def get(self, identifier):
-        return self._read(identifier)
-
-    def filter(self, **kwargs):
-        return self._read(**kwargs)
-
+    @abstractmethod
     def all(self):
         """
         Syntactic / Semantic sugar for querying all entities of a Model.
         """
-        return self._read()
+        pass
 
 
 class AbstractManager:
@@ -110,16 +116,14 @@ class AbstractManager:
         Manager = type(
             cls.__name__,
             (storage.manager,),
-            {
-                attr: getattr(
-                    cls, attr
-                ) for attr in dir(cls) if not is_dunder(attr)
-            }
+            {attr: getattr(cls, attr) for attr in dir(cls) if not is_dunder(attr)},
         )
+        Manager = decorate_class_object_methods(Manager, resolve_super_auto_resolution)
 
         return Manager(klass, db, storage_name)
 
 
 class BaseManager(AbstractManager):
     """ Will return the default manager for the current storage type """
+
     pass

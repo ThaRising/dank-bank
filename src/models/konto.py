@@ -3,7 +3,7 @@ import string
 
 from drizm_commons.sqla import Base
 
-from ..managers import BaseManager, ManagerMixin
+from src.storage.managers import BaseManager, ManagerMixin
 import sqlalchemy as sqla
 
 
@@ -13,12 +13,7 @@ class Konto(ManagerMixin, Base):
     pk = None
     kontonummer = sqla.Column(sqla.String, primary_key=True)
     kontostand = sqla.Column(sqla.Integer)
-    besitzer = sqla.Column(
-        sqla.String,
-        sqla.ForeignKey(
-            "kunde.pk"
-        )
-    )
+    besitzer = sqla.Column(sqla.String, sqla.ForeignKey("kunde.pk"))
     waehrung = sqla.Column(sqla.String)
 
     def __init__(self, **kwargs) -> None:
@@ -28,9 +23,7 @@ class Konto(ManagerMixin, Base):
             self.kontonummer = kwargs.pop("kontonummer")
         else:
             self.kontonummer = "".join(
-                random.choices(
-                    (string.ascii_uppercase + string.digits), k=12
-                )
+                random.choices((string.ascii_uppercase + string.digits), k=12)
             )
 
         if kwargs.get("kontostand"):

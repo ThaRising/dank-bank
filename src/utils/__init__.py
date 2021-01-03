@@ -3,9 +3,7 @@ from typing import List, Optional
 from .hybrid import hybrid_property
 
 
-def find_index_by_value_at_key(items: List[dict],
-                               key,
-                               value) -> Optional[int]:
+def find_index_by_value_at_key(items: List[dict], key, value) -> Optional[int]:
     """
     Inside of a list of dictionaries,
     find the index of the first dictionary,
@@ -17,4 +15,7 @@ def find_index_by_value_at_key(items: List[dict],
     return None
 
 
-__all__ = ["hybrid_property", "find_index_by_value_at_key"]
+__all__ = [
+    "hybrid_property",
+    "find_index_by_value_at_key",
+]

@@ -1,6 +1,6 @@
 from inspect import isclass
 
-from ..utils import hybrid_property
+from src.utils import hybrid_property
 
 
 class ManagerMixin:

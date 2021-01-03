@@ -1,29 +1,148 @@
 # Dank Bank Inc.
 
-Your trusted choice for all
-banking and monetary transfer
-business.
+The "Dank Bank Inc." is an
+imaginary bank, created as part
+of a school project.
+
+This repository contains
+the "Frontend" and "Backend"
+for this bank, which includes
+tools such as:
+- Tkinter based GUI
+- Console based TUI
+- Storage Backend with support 
+  for JSON and SQL
 
 ### Requirements
 
-Python v3.8+
+To run this project, you need:  
+Python v3.8.x
+
+This project has been verified
+working on **Debian 10**,
+**WSL** running **Debian 9**
+and **Windows 10 1909**.
+
+### Optional Dependencies
+
+To fully interact with the
+dependencies and the
+Virtual Environment, the
+following is additionally required:
+- Python Poetry
+- make
+- gcc
 
 ## Installation
-Fetch master branch from github. 
-> git clone https://github.com/ThaRising/dank-bank
 
-Install packages:
->pip install -r requirements.txt
+Download this repository from GitHub:  
+``git clone https://github.com/ThaRising/dank-bank``
 
-Or with Poetry:
->poetry install
+Install dependencies using pip:  
+``python -m pip install -r requirements.txt``
+
+Or using Poetry (preferred):  
+``poetry install``
+
+## Running the Project
+
+The entrypoint for this project
+is the *main.py* file.
+
+You should adjust the content
+of the *main.py* file, depending
+on which type of UI you want to use.
+
+If you want to use the GUI:  
+````python
+# main.py
+
+from src.ui import GUI
+
+
+if __name__ == '__main__':
+    gui = GUI()
+    gui.mainloop()
+````
+
+Or, if you want to use the
+TUI instead:  
+````python
+# main.py
+
+from src.ui import TUI
+
+
+if __name__ == '__main__':
+    tui = TUI()
+    tui.mainloop()
+````
+
+Both of the UI variations,
+will prompt the user to select
+their Storage-type of choice on
+start-up.
+
+If you want to use a specific
+Storage for the UI, you can
+pass it as a parameter like so:  
+````python
+# main.py
+
+from src.ui import TUI
+from src.storage import Storage
+
+
+if __name__ == '__main__':
+    storage = Storage("sql")
+    tui = TUI(storage)
+    tui.mainloop()
+````
+
+Once the main.py has been adjusted,
+you can run it using pip via:  
+``python main.py``  
+
+
+Or using Poetry:  
+``poetry run python main.py``
 
 ## Features
 
+### Fully featured UI
+
+This project comes with a
+complete GUI and TUI,
+each of which allow full
+interaction with the
+imaginary bank.
+
+The following is supported:
+- Creating Users
+- Creating Bank accounts for users
+- Multiple Actions for Bank accounts:
+  - Deposit Money
+  - Withdraw Money
+  - Transfer Money to other accounts
+  - Viewing account balance
+
+### Complete Storage Backend
+
+A full storage backend comes
+included with this repository.
+
+It features an easy-to-use
+Active Record like syntax and
+supports intuitive querying for objects.
+
+It also has support for all major RDBMS
+and even local JSON data storage
+and comes with a unified API for all
+supported data storage options.
+
 #### Multiple Data Storage Types
 
-Currently supported formats for
-data storage:
+Supported formats for data storage:
 - JSON
 - SQL (Any RDBMS supported by SQLAlchemy)
 
@@ -31,125 +150,70 @@ Support for:
 - Full CRUD in both Formats
 - Simple Filtering
 - Unique Keys / Primary Keys + Uniqueness Checks
-- Persisting Schemas (JSON and SQL)
+- Persisting Data (JSON and SQL)
 
-#### Simple Syntax
+#### Simple Querying of objects
 
-Example - Retrieve all Customers:
 ````python
-Storage("sql")
-Storage().db.create()
+from src.models import Kunde
 
-kunden = Kunde.objects.all()
-print(kunden)
+# Retrieve all customers named 'Ben Koch'
+customers = Kunde.objects.filter(name="Ben Koch")
 
-Storage().db.destroy()
+# Retrieve all customers in the database
+customers = Kunde.objects.all()
+
+# Get a customer by their user-id
+customer = Kunde.objects.get("1692523d91ec4e8d9f0791f3a0718dcc")
 ````
 
-## Limitations
+#### Simple declaration of new Models
+
+````python
+# src/models/item.py
+
+from drizm_commons.sqla import Base
+
+from src.storage.managers import BaseManager, ManagerMixin
+import sqlalchemy as sqla
+import uuid
+
+
+class Item(ManagerMixin, Base):
+    manager = BaseManager
+
+    pk = sqla.Column(sqla.String, primary_key=True)
+    color = sqla.Column(sqla.String)
+    item_name = sqla.Column(sqla.String)
+
+    def __init__(self, **kwargs) -> None:
+        # generate a default primary key
+        if not kwargs.get("pk"):
+          kwargs["pk"] = uuid.uuid4()
+
+        super().__init__(**kwargs)
+````
+
+## Storage Limitations
 
 Not supported (or only indirectly):
-- Direct relationship traversal
+- Direct relationships and relationship
+  traversal as well as CASCADE
 - Defaults declared in SQLA Column types
 - Filtering Parameters e.g. a Django-Style
-"name__in", all filtering is exact and
-case-sensitive
+  "name__in", all filtering is exact and
+  case-sensitive
 - Numeric Auto-Incrementing PrimaryKeys
 
-## Usage - Manager API
+## API Documentation
 
-**Calling the Manager:**  
-``Model.objects``
+[Jump to the Technical Docs!](src/README.md)
 
-Example:  
-``Kunde.objects.all()``
+You can find the API docs
+(or technical documentation so to speak)
+in the *src* folder.
 
-*.save()*  
-Save the current object in the database.  
-Raises src.storage.exc.ObjectAlreadyExists
-if the object does not pass UNIQUE checks.
-
-*.update()*  
-Save the state of the object in the database.
-Returns the updated instance.
-
-*.delete()*  
-Delete the current object from the database.
-
-*.get()*  
-Get an instance by its primary key.
-Raises src.storage.exc.ObjectNotFound
-if no object was found for the given identifier.
-
-*.filter()*  
-Get all objects from the database that match
-the specified set of filter params.
-
-*.all()*  
-Get all objects of this Model from the database.
-
-## Usage - Examples
-
-Create SQL Database:
-````python
-from src.storage import Storage
-
-# Initialize Storage
-storage = Storage("sql")
-storage.db.create()
-
-# Do Stuff
-
-# Clear Database
-storage.db.destroy()
-````
-
-Create JSON Database:
-````python
-from src.storage import Storage
-
-storage = Storage("json")
-storage.db.create()
-
-# Do Stuff
-
-storage.db.destroy()
-````
-
-Create a Customer:
-````python
-from src.storage import Storage, models
-import datetime
-
-# Initialize the storage as seen above
-
-kunde = models.Kunde(
-    name="Ben Koch",
-    username="ben.koch",
-    password=models.Kunde.objects.hash_password("security420"),
-    plz="16386",
-    stadt="Berlin",
-    strasse="fgr rgtert ergert ergtert",
-    geb_date=datetime.date(2000, 1, 1)
-)
-kunde.objects.save()
-````
-
-Retrieve a customer by their username:
-````python
-kunde_koch = Kunde.objects.filter(
-    username="ben.koch"
-)
-# Returns a list of length 1 containing the user
-````
-
-Retrieve a bank-account by its ID:
-````python
-kontonummer = "123abchiuiui"
-my_id = Konto.objects.get(kontonummer)
-````
-
-Get all customers:
-````python
-kunden = Kunde.objects.all()
-````
+There you will find the information
+you need to use the Storage backend,
+as well as a full documentation of
+the API for both the UI and the Storage.

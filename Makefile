@@ -1,3 +1,7 @@
 .PHONY: requirements
 requirements:
-	@poetry export --dev -f requirements.txt > requirements.txt
+	@poetry export --dev --without-hashes -f requirements.txt > requirements.txt
+
+.PHONY: format
+format:
+	@poetry run black src

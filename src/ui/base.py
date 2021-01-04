@@ -11,7 +11,7 @@ class UI(ABC):
         "json": lambda: Storage("json")
     }
 
-    storage: Storage
+    storage: Optional[Storage]
     user: Optional[models.Kunde]
     konto: Optional[models.Konto]
 

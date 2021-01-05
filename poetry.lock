@@ -234,6 +234,14 @@ version = "2020.11.13"
 
 [[package]]
 category = "main"
+description = "Reactive Extensions (Rx) for Python"
+name = "rx"
+optional = false
+python-versions = ">=3.6.0"
+version = "3.1.1"
+
+[[package]]
+category = "main"
 description = "Python 2 and 3 compatibility utilities"
 name = "six"
 optional = false
@@ -285,7 +293,7 @@ python-versions = "*"
 version = "3.7.4.3"
 
 [metadata]
-content-hash = "c0e865b7230179401f5c274a60222be7a2e111c682cce8b64209bb7e2b341b8c"
+content-hash = "5692f3121dc486c90e82b1a07c97d9ba8745c68758e3051a45f342c832d3b16b"
 python-versions = "^3.8"
 
 [metadata.files]
@@ -473,6 +481,10 @@ regex = [
     {file = "regex-2020.11.13-cp39-cp39-win32.whl", hash = "sha256:f8f295db00ef5f8bae530fc39af0b40486ca6068733fb860b42115052206466f"},
     {file = "regex-2020.11.13-cp39-cp39-win_amd64.whl", hash = "sha256:a15f64ae3a027b64496a71ab1f722355e570c3fac5ba2801cafce846bf5af01d"},
     {file = "regex-2020.11.13.tar.gz", hash = "sha256:83d6b356e116ca119db8e7c6fc2983289d87b27b3fac238cfe5dca529d884562"},
+]
+rx = [
+    {file = "Rx-3.1.1-py3-none-any.whl", hash = "sha256:0e0f2715a3452e95dcb5d6ea28ffe5742e832592bbcc67a48f394ef8ba871e6f"},
+    {file = "Rx-3.1.1.tar.gz", hash = "sha256:562851cfdb27fd5a218443cdbd682029684144dbafeb5dce34f6a709511282de"},
 ]
 six = [
     {file = "six-1.15.0-py2.py3-none-any.whl", hash = "sha256:8b74bedcbbbaca38ff6d7491d76f2b06b3592611af620f8426e82dddb04a5ced"},

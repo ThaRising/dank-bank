@@ -131,7 +131,7 @@ class Kunde(ManagerMixin, Base):
     @validates("plz")
     def validates_plz(self, _, plz: str) -> str:
         # German only postal codes
-        assert len(plz) == 5, "Muss mind. 5 Zeichen haben."
+        assert len(plz) == 5, "Postleitzahl muss 5 Zeichen enthalten."
 
         return plz
 

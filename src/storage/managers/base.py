@@ -19,9 +19,7 @@ class BaseManagerInterface(ABC):
 
     def _is_static(self) -> bool:
         """ Check whether this manager is serving an instance or a class """
-        if isclass(self.klass):
-            return True
-        return False
+        return isclass(self.klass)
 
     def _get_identifier_column_name(self):
         """ Get the name of the primary key column """

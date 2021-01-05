@@ -1,5 +1,16 @@
 # Dank Bank Inc.
 
+This branch contains the exact
+state of the project when it
+was demonstrated.
+
+master may contain additional
+improvements made since then,
+which were not present during
+the initial demonstration.
+
+---
+
 The "Dank Bank Inc." is an
 imaginary bank, created as part
 of a school project.
